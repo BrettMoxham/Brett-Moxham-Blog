@@ -39,15 +39,15 @@
   title = "WhatsApp"
   icon_pack = "fab"
   icon = "whatsapp"
-  enable = false
+  enable = true
 
 [[buttons]]
- id = "weibo"
+  id = "weibo"
   url = "https://service.weibo.com/share/share.php?url={url}&title={title}"
   title = "Weibo"
   icon_pack = "fab"
   icon = "weibo"
-  enable = false
+  enable = true
 
 [[buttons]]
   id = "reddit"
@@ -55,7 +55,7 @@
   title = "Reddit"
   icon_pack = "fab"
   icon = "reddit-alien"
-  enable = true
+  enable = false
 
 [[buttons]]
   id = "pinterest"
