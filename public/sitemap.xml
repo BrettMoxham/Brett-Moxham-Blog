@@ -3,66 +3,66 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>/brettmoxham.netlify.app/courses/example/</loc>
+    <loc>/courses/example/</loc>
     <lastmod>2018-09-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/slides/</loc>
+    <loc>/</loc>
     <lastmod>2019-02-05T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/slides/example/</loc>
+    <loc>/slides/</loc>
     <lastmod>2019-02-05T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/courses/</loc>
+    <loc>/slides/example/</loc>
+    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/courses/</loc>
     <lastmod>2018-09-09T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/</loc>
+    <loc>/privacy/</loc>
     <lastmod>2018-06-28T00:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/privacy/</loc>
+    <loc>/terms/</loc>
     <lastmod>2018-06-28T00:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/terms/</loc>
-    <lastmod>2018-06-28T00:00:00+01:00</lastmod>
+    <loc>/authors/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/authors/</loc>
+    <loc>/author/brett-moxham/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/author/brett-moxham/</loc>
+    <loc>/categories/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/categories/</loc>
+    <loc>/publication_types/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/publication_types/</loc>
+    <loc>/publication/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/publication/</loc>
+    <loc>/talk/</loc>
   </url>
   
   <url>
-    <loc>/brettmoxham.netlify.app/talk/</loc>
-  </url>
-  
-  <url>
-    <loc>/brettmoxham.netlify.app/tags/</loc>
+    <loc>/tags/</loc>
   </url>
   
 </urlset>
