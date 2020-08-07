@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Brett Moxham | Brett C. Moxham</title>
+    <link>/brettmoxham.netlify.app/author/brett-moxham/</link>
+      <atom:link href="/brettmoxham.netlify.app/author/brett-moxham/index.xml" rel="self" type="application/rss+xml" />
+    <description>Brett Moxham</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language>
+    <image>
+      <url>/brettmoxham.netlify.app/author/brett-moxham/avatar_hue140c197c87befe9cf91b834b875e040_977040_270x270_fill_q90_lanczos_center.jpg</url>
+      <title>Brett Moxham</title>
+      <link>/brettmoxham.netlify.app/author/brett-moxham/</link>
+    </image>
+    
+  </channel>
+</rss>

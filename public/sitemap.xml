@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/courses/example/</loc>
+    <lastmod>2018-09-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/slides/</loc>
+    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/slides/example/</loc>
+    <lastmod>2019-02-05T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/courses/</loc>
+    <lastmod>2018-09-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/</loc>
+    <lastmod>2018-06-28T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/privacy/</loc>
+    <lastmod>2018-06-28T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/terms/</loc>
+    <lastmod>2018-06-28T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/authors/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/author/brett-moxham/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/publication_types/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/publication/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/talk/</loc>
+  </url>
+  
+  <url>
+    <loc>/brettmoxham.netlify.app/tags/</loc>
+  </url>
+  
+</urlset>

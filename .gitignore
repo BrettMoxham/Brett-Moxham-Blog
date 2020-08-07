@@ -35,4 +35,6 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 
-public/
+blogdown
+.DS_Store # 
+public/ # if using Netlify
