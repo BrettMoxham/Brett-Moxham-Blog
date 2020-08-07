@@ -1,7 +1,7 @@
 ---
 authors:
 - admin
-bio: Currently working to effectively and efficiently coordinate inventory flows from distrubition centers out to retail stores for Cabelas Canada. 
+bio: Currently working to effectively and efficiently coordinate inventory flows from distribution centers out to retail stores for Cabelas Canada. 
 education:
   courses:
   - course: BA in Economics
@@ -43,4 +43,4 @@ user_groups:
 - Visitors
 ---
 
-Brett Moxham is currently employed at Cabelas Canada as an Inventory Coordinator. He faciliates the movement of inventory between the various distribtuion centers to Canadian retail stores. When he isn't curling or watching baseball, he is learning R and is an aspiring data analyst.
+Brett Moxham is currently employed at Cabelas Canada as an Inventory Coordinator. He faciliates the movement of inventory between the various distribution centers to Canadian retail stores. When he isn't curling or watching baseball, he is learning R and is an aspiring data analyst.
