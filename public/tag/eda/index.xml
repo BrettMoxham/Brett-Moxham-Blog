@@ -5,12 +5,1543 @@
     <link>/tag/eda/</link>
       <atom:link href="/tag/eda/index.xml" rel="self" type="application/rss+xml" />
     <description>EDA</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Sun, 09 Aug 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Sun, 27 Sep 2020 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
       <title>EDA</title>
       <link>/tag/eda/</link>
     </image>
+    
+    <item>
+      <title>Customer Analysis - EDA</title>
+      <link>/post/customer-analysis-eda/</link>
+      <pubDate>Sun, 27 Sep 2020 00:00:00 +0000</pubDate>
+      <guid>/post/customer-analysis-eda/</guid>
+      <description>
+
+
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(tidyverse)
+library(lubridate) #used to parse date and time in our data cleaning step.
+library(gt)&lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;objective&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Objective&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Taking the data set provided by the &lt;a href=&#34;https://archive.ics.uci.edu/ml/datasets/online+retail#&#34;&gt;UCI Machine Learning Repository&lt;/a&gt;, we want to take an exploratory data analysis approach to gain insights into this store’s customer.&lt;/strong&gt; This data set contains transactions occurring between 01/12/2010 and 09/12/2011 for a UK-based and registered non-store online retail.The company mainly sells unique all-occasion gifts. Many customers of the company are wholesalers.&lt;/p&gt;
+&lt;p&gt;A few things that we want to look at:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Sales by day&lt;/li&gt;
+&lt;li&gt;Unit drivers&lt;/li&gt;
+&lt;li&gt;Dollar drivers&lt;/li&gt;
+&lt;li&gt;Orders/order value by country&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div id=&#34;data&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Data&lt;/h1&gt;
+&lt;p&gt;As stated above, we’ve taken data provided from the UCI Machine Learning Repository. You can find a link to the actual data &lt;a href=&#34;https://archive.ics.uci.edu/ml/machine-learning-databases/00352/&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;online_retail &amp;lt;-  readxl::read_xlsx(&amp;quot;C:/Users/Brett/Desktop/Github/Random Projects/Consumer Data - EDA/Online Retail.xlsx&amp;quot;) ##reads in our data
+
+online_retail &amp;lt;- online_retail %&amp;gt;% ##converts character variables to factor
+  mutate_if(is.character, as.factor) %&amp;gt;% 
+  janitor::clean_names() ## cleans up variable names. &lt;/code&gt;&lt;/pre&gt;
+&lt;div id=&#34;data-cleaning&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Data Cleaning&lt;/h2&gt;
+&lt;p&gt;Let’s take a quick first look at our data so we can see what we are dealing with.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;skimr::skim(online_retail)&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;caption&gt;&lt;span id=&#34;tab:unnamed-chunk-3&#34;&gt;Table 1: &lt;/span&gt;Data summary&lt;/caption&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Name&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;online_retail&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Number of rows&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;541909&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Number of columns&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;8&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;_______________________&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Column type frequency:&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;factor&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;numeric&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;POSIXct&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;________________________&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Group variables&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;None&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: factor&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ordered&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_unique&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;top_counts&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;invoice_no&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;25900&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;573: 1114, 581: 749, 581: 731, 580: 721&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;stock_code&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4070&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;851: 2313, 224: 2203, 850: 2159, 475: 1727&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;description&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1454&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4211&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;WHI: 2369, REG: 2200, JUM: 2159, PAR: 1727&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;country&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;38&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Uni: 495478, Ger: 9495, Fra: 8557, EIR: 8196&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: numeric&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;10%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;10%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;5%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;4%&#34; /&gt;
+&lt;col width=&#34;29%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;mean&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;sd&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p0&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p25&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p50&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p75&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p100&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;hist&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;quantity&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;9.55&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;218.08&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-80995.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;10.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;80995&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▁▇▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;unit_price&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.61&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;96.76&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-11062.06&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.25&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2.08&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.13&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;38970&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▇▁▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;customer_id&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;135080&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.75&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15287.69&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1713.60&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;12346.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;13953.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15152.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16791.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;18287&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▇▇▇▇▇&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: POSIXct&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;9%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;8%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;min&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;max&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;median&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_unique&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;invoice_date&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2010-12-01 08:26:00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-12-09 12:50:00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-07-19 17:17:00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;23260&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We have over 540,000 different orders, of which we have 8 different data points on each.
+We have data on:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The invoice number&lt;/li&gt;
+&lt;li&gt;The stock code&lt;/li&gt;
+&lt;li&gt;The stock description&lt;/li&gt;
+&lt;li&gt;Country of purchase&lt;/li&gt;
+&lt;li&gt;Quantity purchased&lt;/li&gt;
+&lt;li&gt;Unit price&lt;/li&gt;
+&lt;li&gt;Anonymized customer ID number&lt;/li&gt;
+&lt;li&gt;Invoice date&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Most of our data points are fully complete. However we are missing some item descriptions, quite a few (25%) of our customer ID’s. These two are not able to be imputed, and we can chalk up to data quality issues. There isn’t much that we can do to remedy this. Notice too, that we don’t have a total value of individual purchases, or a total dollar value of each invoice. These are important factors to consider. We can pretty simply create these variables. Let’s also add in some date variables that we may want to look at. Finally, when we look at our &lt;code&gt;quantity&lt;/code&gt; tab, we see that the lowest value is -80995. Without being to verify, we must assume that this means that stock was returned to the store. It could be a data quality issue, but we have no way of knowing.&lt;/p&gt;
+&lt;p&gt;Now that we have looked at our data, it is time to add in some extra variables that will help in our analysis. We will create a new data frame and call it &lt;code&gt;sales&lt;/code&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales &amp;lt;- online_retail %&amp;gt;%
+  mutate(item_value = unit_price*quantity) %&amp;gt;% 
+  group_by(invoice_no) %&amp;gt;% 
+  mutate(invoice_total_value = sum(item_value)) %&amp;gt;% 
+  ungroup() %&amp;gt;% 
+  mutate(date = date(invoice_date), #adds in the full date, strips time
+         month = month(invoice_date), ## adds invoice month
+         day = day(invoice_date), ## adds invoice day in month (1-31)
+         weekday = wday(invoice_date), ## adds invoice weekday (1-7) need to find if they start week on monday or sunday
+         hour = hour(invoice_date)) %&amp;gt;%  ## adds invoice hour
+    ungroup() %&amp;gt;%
+    filter(!str_detect(description, &amp;quot;^[:lower:]+$&amp;quot;))## Found a bunch of item descriptions that seemed to be one off descriptions like &amp;quot;damaged&amp;quot;, &amp;quot;broken&amp;quot; etc.. This function removes those from the data set.
+
+skimr::skim(sales)&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;caption&gt;&lt;span id=&#34;tab:unnamed-chunk-4&#34;&gt;Table 2: &lt;/span&gt;Data summary&lt;/caption&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Name&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;sales&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Number of rows&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;540118&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Number of columns&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;15&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;_______________________&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Column type frequency:&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Date&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;factor&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;numeric&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;9&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;POSIXct&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;________________________&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;Group variables&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;None&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: Date&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;min&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;max&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;median&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_unique&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;date&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2010-12-01&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-12-09&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-07-20&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;305&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: factor&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;ordered&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_unique&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;top_counts&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;invoice_no&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;24109&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;573: 1114, 581: 749, 581: 731, 580: 721&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;stock_code&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3954&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;851: 2313, 224: 2200, 850: 2159, 475: 1727&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;description&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4186&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;WHI: 2369, REG: 2200, JUM: 2159, PAR: 1727&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;country&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;FALSE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;38&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Uni: 493687, Ger: 9495, Fra: 8557, EIR: 8196&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: numeric&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;9%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;5%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;27%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;mean&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;sd&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p0&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p25&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p50&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p75&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;p100&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;hist&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;quantity&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;9.64&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;218.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-80995.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;10.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;80995.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▁▇▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;unit_price&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.63&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;96.92&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-11062.06&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.25&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2.08&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.13&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;38970.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▇▁▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;customer_id&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;133289&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.75&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15287.69&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1713.60&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;12346.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;13953.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15152.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16791.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;18287.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▇▇▇▇▇&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;item_value&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;18.05&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;379.44&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-168469.60&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.48&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;9.84&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;17.40&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;168469.6&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▁▇▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;invoice_total_value&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1343.76&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2372.20&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;-168469.60&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;288.99&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;517.05&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1436.93&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;168469.6&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▁▇▁▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;month&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7.56&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.51&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;8.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;12.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▃▂▃▃▇&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;day&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15.02&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;8.66&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;22.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;31.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▇▆▆▆▅&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;weekday&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.60&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.61&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;6.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▇▅▅▅▅&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;hour&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;13.08&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2.44&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;6.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;13.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;20.0&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;▁▅▇▆▁&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;Variable type: POSIXct&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;9%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;18%&#34; /&gt;
+&lt;col width=&#34;8%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;skim_variable&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_missing&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;complete_rate&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;min&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;max&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;median&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;n_unique&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;invoice_date&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2010-12-01 08:26:00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-12-09 12:50:00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-07-20 11:22:00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;22050&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Looking at our new data frame, we have a lot more data to work with. We can now organize our data in so many different ways, such as hour of day, or day of the week. Speaking of day of the week, It looks like we only have sales day for day 6. Meaning that sales are not processed one day out of the week. We need to know whether Sunday or Monday equates to day 1 of 7.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  filter(date == &amp;quot;2010-12-01&amp;quot;) %&amp;gt;% 
+  select(date, weekday)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 3,098 x 2
+##    date       weekday
+##    &amp;lt;date&amp;gt;       &amp;lt;dbl&amp;gt;
+##  1 2010-12-01       4
+##  2 2010-12-01       4
+##  3 2010-12-01       4
+##  4 2010-12-01       4
+##  5 2010-12-01       4
+##  6 2010-12-01       4
+##  7 2010-12-01       4
+##  8 2010-12-01       4
+##  9 2010-12-01       4
+## 10 2010-12-01       4
+## # ... with 3,088 more rows&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Going back in the calendar, we know that December 1st 2020, starts on a Wednesday. This means that our week starts on Sunday, and by extension, that our store does not process sales on Saturday.&lt;/p&gt;
+&lt;p&gt;With our data in a more usable format, and some extra variables added, we can start our exploratory data analysis.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;exploratory-data-analysis&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Exploratory Data Analysis&lt;/h1&gt;
+&lt;div id=&#34;sales-over-time&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Sales Over Time&lt;/h2&gt;
+&lt;p&gt;First and foremost, let’s look at the sales over the year. Let’s see if anything stands out right off the top before we get into the nitty gritty.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  group_by(date) %&amp;gt;% 
+  summarise(total = sum(invoice_total_value)) %&amp;gt;% 
+  mutate(flag = ifelse(total &amp;gt;= 8000000, T, F)) %&amp;gt;% 
+  ggplot(aes(date, total)) +
+  geom_col(aes(fill = flag)) +
+  scale_y_continuous(labels = scales::dollar_format()) + 
+  scale_fill_manual(values = c(&amp;#39;#595959&amp;#39;, &amp;#39;red&amp;#39;))+
+  scale_x_date(date_breaks = &amp;quot;months&amp;quot; , date_labels = &amp;quot;%b-%y&amp;quot;)+
+  theme_minimal()+
+  theme(text = element_text(family = &amp;quot;Nunito Bold&amp;quot;, face = &amp;quot;bold&amp;quot;),
+    legend.position = &amp;quot;none&amp;quot;,
+    panel.grid.major.x  = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )+
+  labs(
+    title = &amp;quot;Total Sales by Date&amp;quot;,
+    x = &amp;quot;&amp;quot;,
+    y = &amp;quot;&amp;quot;
+  )&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-6-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;We’re looking at a graph of total sales over the year. We’ve highlighted total sales per day over $8,000,000. We see a large number of these days in December in both 2010 and 2011. We can assume that December is a big month for this company. We also see a day in August that exceeded $8,000,000. Let’s take a look at that day and see if anything sticks out.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  filter(month == 8) %&amp;gt;% 
+  group_by(date) %&amp;gt;% 
+  summarise(total = sum(invoice_total_value)) %&amp;gt;% 
+  filter(total &amp;gt;= 8000000)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## # A tibble: 1 x 2
+##   date          total
+##   &amp;lt;date&amp;gt;        &amp;lt;dbl&amp;gt;
+## 1 2011-08-11 9209482.&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;August 11th, 2011 had a total sales of 9.2 million. Let’s dive in and see if any orders stand out.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  filter(date == &amp;quot;2011-08-11&amp;quot;) %&amp;gt;% 
+  group_by(invoice_no) %&amp;gt;% 
+  summarize(total = sum(invoice_total_value)) %&amp;gt;% 
+  arrange(-total) %&amp;gt;% 
+  head(20) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;invoice_no&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;total&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5887072.78&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2278928.54&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563074&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;205693.84&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563093&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;200606.56&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562980&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;130418.40&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563016&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;34799.80&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562949&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;32643.02&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563094&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;28079.52&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562984&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;24586.05&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562939&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;23787.36&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562965&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;22004.40&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563022&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;21986.85&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562964&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19270.80&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563061&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16496.20&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563023&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16030.20&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563017&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15675.52&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563020&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14523.36&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563019&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14297.28&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563037&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14077.50&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563012&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;13375.53&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We’ve got two invoices well over $200,000. Let’s examine those a little bit.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  filter(invoice_no == 562955) %&amp;gt;% 
+  head(5) %&amp;gt;% 
+  select(-c(invoice_date, day, month, weekday, hour)) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table style=&#34;width:100%;&#34;&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;23%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;8%&#34; /&gt;
+&lt;col width=&#34;10%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;invoice_no&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;stock_code&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;description&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;quantity&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;unit_price&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;country&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;item_value&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;invoice_total_value&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;date&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22469&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;HEART OF WICKER SMALL&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4.13&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;NA&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;United Kingdom&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16.52&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16677.26&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22470&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;HEART OF WICKER LARGE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5.79&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;NA&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;United Kingdom&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;23.16&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16677.26&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22485&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;SET OF 2 WOODEN MARKET CRATES&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;24.96&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;NA&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;United Kingdom&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;74.88&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16677.26&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22488&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;NATURAL SLATE RECTANGLE CHALKBOARD&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;9&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3.29&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;NA&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;United Kingdom&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;29.61&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16677.26&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;562955&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22501&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;PICNIC BASKET WICKER LARGE&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;15&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;20.79&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;NA&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;United Kingdom&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;311.85&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16677.26&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Well this first order, we don’t have a customer ID. It would be worth while to find who created this invoice, so we can execute targeted marketing for future repurchases!&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales %&amp;gt;% 
+  filter(invoice_no == 563076) %&amp;gt;% 
+  head(5) %&amp;gt;% 
+  select(-c(invoice_date, day, month, weekday, hour)) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;25%&#34; /&gt;
+&lt;col width=&#34;6%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;8%&#34; /&gt;
+&lt;col width=&#34;8%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;left&#34;&gt;invoice_no&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;stock_code&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;description&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;quantity&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;unit_price&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;country&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;item_value&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;invoice_total_value&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;date&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22795&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;SWEETHEART RECIPE BOOK STAND&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;16&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5.95&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14646&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Netherlands&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;95.20&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19150.66&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;23176&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;ABC TREASURE BOOK BOX&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;72&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.95&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14646&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Netherlands&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;140.40&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19150.66&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;22399&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;MAGNETS PACK OF 4 CHILDHOOD MEMORY&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;108&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.06&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14646&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Netherlands&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;114.48&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19150.66&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;23268&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;SET OF 2 CERAMIC CHRISTMAS REINDEER&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;384&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.25&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14646&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Netherlands&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;480.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19150.66&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;left&#34;&gt;563076&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;23270&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;SET OF 2 CERAMIC PAINTED HEARTS&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;192&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1.25&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;14646&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;Netherlands&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;240.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;19150.66&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2011-08-11&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;This is a big order out of the Netherlands that we do actually have a customer ID for. When we do our analysis on where our buying comes from, we should pay attention to the Netherlands. Perhaps this one buyer makes up a large portion of that countries total buying.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;unit-drivers&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Unit Drivers&lt;/h2&gt;
+&lt;p&gt;Let’s identify the largest unit drivers over the year. When we look at the data set, when we look at item descriptions with 1 or 2 units, they seem to be either 1 off or just data entry errors. We could process these out, but for the sake of this exercise, I’m going to filter to items that have a total unit value of at least 3.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;unit_drivers &amp;lt;- sales %&amp;gt;% 
+  select(description, quantity) %&amp;gt;% 
+  group_by(description) %&amp;gt;% 
+  summarise(total_quantity = sum(quantity)) %&amp;gt;% 
+  filter(total_quantity &amp;gt;3) %&amp;gt;% 
+  ungroup() %&amp;gt;% 
+  arrange(desc(total_quantity)) %&amp;gt;% 
+  head(20)
+
+
+unit_drivers %&amp;gt;% 
+  ggplot(aes(fct_reorder(description, total_quantity), total_quantity, label = total_quantity)) + 
+  geom_col(fill = &amp;quot;#303844&amp;quot;)+
+  geom_text(hjust = 1.1, color = &amp;quot;white&amp;quot;,fontface = &amp;quot;bold&amp;quot;)+
+  coord_flip()+
+  theme_minimal()+
+  theme(text = element_text(family = &amp;quot;Nunito Bold&amp;quot;, face = &amp;quot;bold&amp;quot;),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank()
+          )+
+  labs(
+    title = &amp;quot;Unit Drivers&amp;quot;,
+    subtitle = &amp;quot;For Calendar Year 2011&amp;quot;,
+    x = &amp;quot;&amp;quot;,
+    y = &amp;quot;Units&amp;quot;
+  ) -&amp;gt; graph_unit_drivers
+
+graph_unit_drivers&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-11-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;We now have a graph of our top 20 unit drivers for the year 2011. If we can find inefficiencies in our sales process for these units, we can correct for them and increase our sales revenue due to the sheer volume of sales that these units produce.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;dollar-drivers&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Dollar Drivers&lt;/h2&gt;
+&lt;p&gt;Let’s run the same type of analysis and identify our top dollar drivers.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;dollar_drivers &amp;lt;- sales %&amp;gt;% 
+  select(description, invoice_total_value) %&amp;gt;% 
+  group_by(description) %&amp;gt;% 
+  summarise(total_dollars = sum(invoice_total_value)) %&amp;gt;% 
+  ungroup() %&amp;gt;% 
+  mutate(label_text = paste(&amp;quot;$&amp;quot;,round(total_dollars, digits = 2)),
+         label_text = trimws(label_text))%&amp;gt;% 
+  arrange(desc(total_dollars))%&amp;gt;% 
+  head(20)
+
+dollar_drivers %&amp;gt;% 
+  ggplot(aes(fct_reorder(description, total_dollars), total_dollars, label = label_text)) + 
+  geom_col(fill = &amp;quot;#303844&amp;quot;)+
+  geom_text(hjust = 1.1, color = &amp;quot;white&amp;quot;,fontface = &amp;quot;bold&amp;quot;)+
+  scale_y_continuous(labels=scales::dollar_format())+
+  coord_flip()+
+  theme_minimal()+
+  theme(text = element_text(family = &amp;quot;Nunito Bold&amp;quot;, face = &amp;quot;bold&amp;quot;),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank()
+          )+
+  labs(
+    title = &amp;quot;Dollar Drivers&amp;quot;,
+    subtitle = &amp;quot;For Calendar Year 2011&amp;quot;,
+    x = &amp;quot;&amp;quot;,
+    y = &amp;quot;&amp;quot;
+  ) -&amp;gt; graph_dollar_drivers
+
+graph_dollar_drivers&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-12-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;Looking at the two graphs we can see that a few SKU’s show up in both the dollar drivers and the unit drivers. For instance the &lt;em&gt;Party Bunting&lt;/em&gt;, and the &lt;em&gt;Pack of 72 Retrospot Cake Cases&lt;/em&gt;. It is safe to say that these two SKU’s make up an important part of the business.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;where-in-the-world-are-our-sales&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Where in the World Are Our Sales?&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales_by_country &amp;lt;- sales %&amp;gt;% 
+  select(country, invoice_total_value) %&amp;gt;%
+  group_by(country) %&amp;gt;% 
+  summarise(total_sales_by_country = sum(invoice_total_value)) 
+
+
+sales_by_country %&amp;gt;% 
+  arrange(desc(total_sales_by_country)) %&amp;gt;% 
+  gt() %&amp;gt;% 
+  fmt_currency(
+    # Define the columns to change
+    columns = vars(total_sales_by_country),
+    # How many decimals to round to
+    decimals = 2,
+  ) %&amp;gt;%
+  # Align the now character column to be right-aligned
+  cols_align(
+    align = &amp;quot;right&amp;quot;,
+    columns = vars(total_sales_by_country)) %&amp;gt;% 
+  cols_label(
+    total_sales_by_country = &amp;quot;Total Sales&amp;quot;,
+    country = &amp;quot;Country&amp;quot;
+  )  %&amp;gt;%
+  tab_header(
+    title = md(&amp;quot;**Sales by Country**&amp;quot;),
+    subtitle = &amp;quot;2011&amp;quot;
+  )&lt;/code&gt;&lt;/pre&gt;
+&lt;style&gt;html {
+  font-family: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Oxygen, Ubuntu, Cantarell, &#39;Helvetica Neue&#39;, &#39;Fira Sans&#39;, &#39;Droid Sans&#39;, Arial, sans-serif;
+}
+
+#ppldeepxvv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ppldeepxvv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ppldeepxvv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ppldeepxvv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ppldeepxvv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ppldeepxvv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ppldeepxvv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ppldeepxvv .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ppldeepxvv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ppldeepxvv .gt_from_md &gt; :first-child {
+  margin-top: 0;
+}
+
+#ppldeepxvv .gt_from_md &gt; :last-child {
+  margin-bottom: 0;
+}
+
+#ppldeepxvv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ppldeepxvv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#ppldeepxvv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ppldeepxvv .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ppldeepxvv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ppldeepxvv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ppldeepxvv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ppldeepxvv .gt_left {
+  text-align: left;
+}
+
+#ppldeepxvv .gt_center {
+  text-align: center;
+}
+
+#ppldeepxvv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ppldeepxvv .gt_font_normal {
+  font-weight: normal;
+}
+
+#ppldeepxvv .gt_font_bold {
+  font-weight: bold;
+}
+
+#ppldeepxvv .gt_font_italic {
+  font-style: italic;
+}
+
+#ppldeepxvv .gt_super {
+  font-size: 65%;
+}
+
+#ppldeepxvv .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+&lt;/style&gt;
+&lt;div id=&#34;ppldeepxvv&#34; style=&#34;overflow-x:auto;overflow-y:auto;width:auto;height:auto;&#34;&gt;&lt;table class=&#34;gt_table&#34;&gt;
+  &lt;thead class=&#34;gt_header&#34;&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;2&#34; class=&#34;gt_heading gt_title gt_font_normal&#34; style&gt;&lt;strong&gt;Sales by Country&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;th colspan=&#34;2&#34; class=&#34;gt_heading gt_subtitle gt_font_normal gt_bottom_border&#34; style&gt;2011&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;thead class=&#34;gt_col_headings&#34;&gt;
+    &lt;tr&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_center&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;Country&lt;/th&gt;
+      &lt;th class=&#34;gt_col_heading gt_columns_bottom_border gt_right&#34; rowspan=&#34;1&#34; colspan=&#34;1&#34;&gt;Total Sales&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody class=&#34;gt_table_body&#34;&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;United Kingdom&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$652,672,300.00&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Netherlands&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$18,093,270.11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Australia&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$10,524,587.39&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;EIRE&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$9,958,173.60&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Germany&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$7,728,452.33&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;France&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$7,332,944.50&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Switzerland&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$4,163,775.10&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Spain&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$2,172,299.21&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Norway&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$1,891,707.24&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Portugal&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$1,294,880.06&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Belgium&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$1,179,874.95&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Japan&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$931,334.20&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Israel&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$905,426.91&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Channel Islands&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$858,722.68&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Cyprus&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$848,770.76&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Sweden&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$774,996.46&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Finland&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$735,092.37&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Italy&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$630,858.70&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Singapore&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$553,321.72&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Hong Kong&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$522,479.73&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Denmark&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$466,853.60&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Austria&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$307,311.71&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Unspecified&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$189,661.49&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Poland&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$168,920.07&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Canada&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$163,279.88&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Greece&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$147,157.84&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Iceland&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$134,181.24&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Malta&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$87,997.60&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Lebanon&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$76,224.60&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;United Arab Emirates&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$62,809.68&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;RSA&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$58,133.98&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;USA&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$38,928.34&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Brazil&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$36,595.20&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Lithuania&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$32,208.50&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;European Community&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$29,123.05&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Czech Republic&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$10,779.66&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Bahrain&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$6,328.20&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td class=&#34;gt_row gt_center&#34;&gt;Saudi Arabia&lt;/td&gt;
+      &lt;td class=&#34;gt_row gt_right&#34;&gt;$1,298.53&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+  
+  
+&lt;/table&gt;&lt;/div&gt;
+&lt;p&gt;The vast, vast majority of the yearly sales came from the UK. Considering that this business is based there, that makes sense. Looking at our lowest value countries, We have Saudi Arabia, Bahrain and The Czech Republic. If there is marketing dollars being spent there currently, it may be wise to move it else where.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;wrap-up&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Wrap Up&lt;/h1&gt;
+&lt;p&gt;We took a look at our sales data from this anonymized store data set. We look at unit drivers, dollar drivers and which countries produced the most sales. In the future it would be beneficial to examine customer segmentation, perhaps utilizing KNN. I will save that for a future blog post however.&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>European Energy (Tidy Tuesday)</title>

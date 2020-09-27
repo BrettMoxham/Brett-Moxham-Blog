@@ -1,0 +1,2553 @@
+<!DOCTYPE html><html lang="en-us" >
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="generator" content="Source Themes Academic 4.8.0">
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Brett Moxham">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="library(tidyverse)library(lubridate) #used to parse date and time in our data cleaning step.library(gt)ObjectiveTaking the data set provided by the UCI Machine Learning Repository, we want to take an exploratory data analysis approach to gain insights into this store’s customer.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="/post/customer-analysis-eda/">
+
+  
+
+
+  
+  
+  
+  <meta name="theme-color" content="#2962ff">
+  
+
+  
+  
+
+  
+  
+  
+  
+    
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha256-FMvZuGapsJLjouA6k7Eo2lusoAX9i0ShlWFG6qt7SLc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.css" integrity="sha256-SHMGCYmST46SoyGgo4YR/9AlK1vf3ff84Aq9yK4hdqM=" crossorigin="anonymous">
+    
+
+    
+
+    
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.1.2/lazysizes.min.js" integrity="sha256-Md1qLToewPeKjfAHU1zyPwOutccPAm5tahnaw7Osw0A=" crossorigin="anonymous" async></script>
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+        
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+
+  
+
+  
+  
+  
+    
+      
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700%7CRoboto:400,400italic,700%7CRoboto+Mono&display=swap">
+    
+  
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/academic.css">
+
+  
+
+
+
+
+  
+
+
+  
+  
+
+  
+
+  <link rel="manifest" href="/index.webmanifest">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
+
+  <link rel="canonical" href="/post/customer-analysis-eda/">
+
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="twitter:site" content="@bmoxO9">
+  <meta property="twitter:creator" content="@bmoxO9">
+  
+  <meta property="og:site_name" content="Brett C. Moxham">
+  <meta property="og:url" content="/post/customer-analysis-eda/">
+  <meta property="og:title" content="Customer Analysis - EDA | Brett C. Moxham">
+  <meta property="og:description" content="library(tidyverse)library(lubridate) #used to parse date and time in our data cleaning step.library(gt)ObjectiveTaking the data set provided by the UCI Machine Learning Repository, we want to take an exploratory data analysis approach to gain insights into this store’s customer."><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  
+    
+      <meta property="article:published_time" content="2020-09-27T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2020-09-27T14:55:51-05:00">
+  
+
+  
+
+
+    
+
+
+
+
+
+
+  
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "/post/customer-analysis-eda/"
+  },
+  "headline": "Customer Analysis - EDA",
+  
+  "datePublished": "2020-09-27T00:00:00Z",
+  "dateModified": "2020-09-27T14:55:51-05:00",
+  
+  "author": {
+    "@type": "Person",
+    "name": "Brett Moxham"
+  },
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Brett C. Moxham",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
+    }
+  },
+  "description": "library(tidyverse)\rlibrary(lubridate) #used to parse date and time in our data cleaning step.\rlibrary(gt)\rObjective\rTaking the data set provided by the UCI Machine Learning Repository, we want to take an exploratory data analysis approach to gain insights into this store’s customer."
+}
+</script>
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+
+  <title>Customer Analysis - EDA | Brett C. Moxham</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class=" ">
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="d-none d-lg-inline-flex">
+      <a class="navbar-brand" href="/">Brett C. Moxham</a>
+    </div>
+    
+
+    
+    <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#navbar-content" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span><i class="fas fa-bars"></i></span>
+    </button>
+    
+
+    
+    <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+      <a class="navbar-brand" href="/">Brett C. Moxham</a>
+    </div>
+    
+
+    
+    
+    <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+      
+      <ul class="navbar-nav d-md-inline-flex">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+        
+        
+        
+        
+        
+          
+          
+          
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+      </ul>
+    </div>
+
+    <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+      
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
+
+      
+      <li class="nav-item dropdown theme-dropdown">
+        <a href="#" class="nav-link js-theme-selector" data-toggle="dropdown" aria-haspopup="true">
+          <i class="fas fa-palette" aria-hidden="true"></i>
+        </a>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item js-set-theme-light">
+            <span>Light</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-dark">
+            <span>Dark</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-auto">
+            <span>Automatic</span>
+          </a>
+        </div>
+      </li>
+      
+
+      
+
+    </ul>
+
+  </div>
+</nav>
+
+
+
+  <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Customer Analysis - EDA</h1>
+
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    Sep 27, 2020
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    14 min read
+  </span>
+  
+
+  
+  
+  
+
+  
+  
+
+</div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+<pre class="r"><code>library(tidyverse)
+library(lubridate) #used to parse date and time in our data cleaning step.
+library(gt)</code></pre>
+<div id="objective" class="section level1">
+<h1>Objective</h1>
+<p><strong>Taking the data set provided by the <a href="https://archive.ics.uci.edu/ml/datasets/online+retail#">UCI Machine Learning Repository</a>, we want to take an exploratory data analysis approach to gain insights into this store’s customer.</strong> This data set contains transactions occurring between 01/12/2010 and 09/12/2011 for a UK-based and registered non-store online retail.The company mainly sells unique all-occasion gifts. Many customers of the company are wholesalers.</p>
+<p>A few things that we want to look at:</p>
+<ul>
+<li>Sales by day</li>
+<li>Unit drivers</li>
+<li>Dollar drivers</li>
+<li>Orders/order value by country</li>
+</ul>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<p>As stated above, we’ve taken data provided from the UCI Machine Learning Repository. You can find a link to the actual data <a href="https://archive.ics.uci.edu/ml/machine-learning-databases/00352/">here</a>.</p>
+<pre class="r"><code>online_retail &lt;-  readxl::read_xlsx(&quot;C:/Users/Brett/Desktop/Github/Random Projects/Consumer Data - EDA/Online Retail.xlsx&quot;) ##reads in our data
+
+online_retail &lt;- online_retail %&gt;% ##converts character variables to factor
+  mutate_if(is.character, as.factor) %&gt;% 
+  janitor::clean_names() ## cleans up variable names. </code></pre>
+<div id="data-cleaning" class="section level2">
+<h2>Data Cleaning</h2>
+<p>Let’s take a quick first look at our data so we can see what we are dealing with.</p>
+<pre class="r"><code>skimr::skim(online_retail)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-3">Table 1: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">online_retail</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">541909</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">8</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">factor</td>
+<td align="left">4</td>
+</tr>
+<tr class="odd">
+<td align="left">numeric</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td align="left">POSIXct</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">invoice_no</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">25900</td>
+<td align="left">573: 1114, 581: 749, 581: 731, 580: 721</td>
+</tr>
+<tr class="even">
+<td align="left">stock_code</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">4070</td>
+<td align="left">851: 2313, 224: 2203, 850: 2159, 475: 1727</td>
+</tr>
+<tr class="odd">
+<td align="left">description</td>
+<td align="right">1454</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">4211</td>
+<td align="left">WHI: 2369, REG: 2200, JUM: 2159, PAR: 1727</td>
+</tr>
+<tr class="even">
+<td align="left">country</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">38</td>
+<td align="left">Uni: 495478, Ger: 9495, Fra: 8557, EIR: 8196</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<colgroup>
+<col width="10%" />
+<col width="7%" />
+<col width="10%" />
+<col width="6%" />
+<col width="5%" />
+<col width="7%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="4%" />
+<col width="29%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">quantity</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">9.55</td>
+<td align="right">218.08</td>
+<td align="right">-80995.00</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+<td align="right">10.00</td>
+<td align="right">80995</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">unit_price</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">4.61</td>
+<td align="right">96.76</td>
+<td align="right">-11062.06</td>
+<td align="right">1.25</td>
+<td align="right">2.08</td>
+<td align="right">4.13</td>
+<td align="right">38970</td>
+<td align="left">▁▇▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">customer_id</td>
+<td align="right">135080</td>
+<td align="right">0.75</td>
+<td align="right">15287.69</td>
+<td align="right">1713.60</td>
+<td align="right">12346.00</td>
+<td align="right">13953.00</td>
+<td align="right">15152.00</td>
+<td align="right">16791.00</td>
+<td align="right">18287</td>
+<td align="left">▇▇▇▇▇</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: POSIXct</strong></p>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="9%" />
+<col width="13%" />
+<col width="18%" />
+<col width="18%" />
+<col width="18%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">min</th>
+<th align="left">max</th>
+<th align="left">median</th>
+<th align="right">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">invoice_date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">2010-12-01 08:26:00</td>
+<td align="left">2011-12-09 12:50:00</td>
+<td align="left">2011-07-19 17:17:00</td>
+<td align="right">23260</td>
+</tr>
+</tbody>
+</table>
+<p>We have over 540,000 different orders, of which we have 8 different data points on each.
+We have data on:</p>
+<ul>
+<li>The invoice number</li>
+<li>The stock code</li>
+<li>The stock description</li>
+<li>Country of purchase</li>
+<li>Quantity purchased</li>
+<li>Unit price</li>
+<li>Anonymized customer ID number</li>
+<li>Invoice date</li>
+</ul>
+<p>Most of our data points are fully complete. However we are missing some item descriptions, quite a few (25%) of our customer ID’s. These two are not able to be imputed, and we can chalk up to data quality issues. There isn’t much that we can do to remedy this. Notice too, that we don’t have a total value of individual purchases, or a total dollar value of each invoice. These are important factors to consider. We can pretty simply create these variables. Let’s also add in some date variables that we may want to look at. Finally, when we look at our <code>quantity</code> tab, we see that the lowest value is -80995. Without being to verify, we must assume that this means that stock was returned to the store. It could be a data quality issue, but we have no way of knowing.</p>
+<p>Now that we have looked at our data, it is time to add in some extra variables that will help in our analysis. We will create a new data frame and call it <code>sales</code>.</p>
+<pre class="r"><code>sales &lt;- online_retail %&gt;%
+  mutate(item_value = unit_price*quantity) %&gt;% 
+  group_by(invoice_no) %&gt;% 
+  mutate(invoice_total_value = sum(item_value)) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(date = date(invoice_date), #adds in the full date, strips time
+         month = month(invoice_date), ## adds invoice month
+         day = day(invoice_date), ## adds invoice day in month (1-31)
+         weekday = wday(invoice_date), ## adds invoice weekday (1-7) need to find if they start week on monday or sunday
+         hour = hour(invoice_date)) %&gt;%  ## adds invoice hour
+    ungroup() %&gt;%
+    filter(!str_detect(description, &quot;^[:lower:]+$&quot;))## Found a bunch of item descriptions that seemed to be one off descriptions like &quot;damaged&quot;, &quot;broken&quot; etc.. This function removes those from the data set.
+
+skimr::skim(sales)</code></pre>
+<table>
+<caption><span id="tab:unnamed-chunk-4">Table 2: </span>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td align="left">Name</td>
+<td align="left">sales</td>
+</tr>
+<tr class="even">
+<td align="left">Number of rows</td>
+<td align="left">540118</td>
+</tr>
+<tr class="odd">
+<td align="left">Number of columns</td>
+<td align="left">15</td>
+</tr>
+<tr class="even">
+<td align="left">_______________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Column type frequency:</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Date</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">factor</td>
+<td align="left">4</td>
+</tr>
+<tr class="even">
+<td align="left">numeric</td>
+<td align="left">9</td>
+</tr>
+<tr class="odd">
+<td align="left">POSIXct</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">________________________</td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Group variables</td>
+<td align="left">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: Date</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">min</th>
+<th align="left">max</th>
+<th align="left">median</th>
+<th align="right">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">2010-12-01</td>
+<td align="left">2011-12-09</td>
+<td align="left">2011-07-20</td>
+<td align="right">305</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">ordered</th>
+<th align="right">n_unique</th>
+<th align="left">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">invoice_no</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">24109</td>
+<td align="left">573: 1114, 581: 749, 581: 731, 580: 721</td>
+</tr>
+<tr class="even">
+<td align="left">stock_code</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">3954</td>
+<td align="left">851: 2313, 224: 2200, 850: 2159, 475: 1727</td>
+</tr>
+<tr class="odd">
+<td align="left">description</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">4186</td>
+<td align="left">WHI: 2369, REG: 2200, JUM: 2159, PAR: 1727</td>
+</tr>
+<tr class="even">
+<td align="left">country</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">FALSE</td>
+<td align="right">38</td>
+<td align="left">Uni: 493687, Ger: 9495, Fra: 8557, EIR: 8196</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="6%" />
+<col width="9%" />
+<col width="6%" />
+<col width="5%" />
+<col width="7%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="27%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="right">mean</th>
+<th align="right">sd</th>
+<th align="right">p0</th>
+<th align="right">p25</th>
+<th align="right">p50</th>
+<th align="right">p75</th>
+<th align="right">p100</th>
+<th align="left">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">quantity</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">9.64</td>
+<td align="right">218.00</td>
+<td align="right">-80995.00</td>
+<td align="right">1.00</td>
+<td align="right">3.00</td>
+<td align="right">10.00</td>
+<td align="right">80995.0</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">unit_price</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">4.63</td>
+<td align="right">96.92</td>
+<td align="right">-11062.06</td>
+<td align="right">1.25</td>
+<td align="right">2.08</td>
+<td align="right">4.13</td>
+<td align="right">38970.0</td>
+<td align="left">▁▇▁▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">customer_id</td>
+<td align="right">133289</td>
+<td align="right">0.75</td>
+<td align="right">15287.69</td>
+<td align="right">1713.60</td>
+<td align="right">12346.00</td>
+<td align="right">13953.00</td>
+<td align="right">15152.00</td>
+<td align="right">16791.00</td>
+<td align="right">18287.0</td>
+<td align="left">▇▇▇▇▇</td>
+</tr>
+<tr class="even">
+<td align="left">item_value</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">18.05</td>
+<td align="right">379.44</td>
+<td align="right">-168469.60</td>
+<td align="right">3.48</td>
+<td align="right">9.84</td>
+<td align="right">17.40</td>
+<td align="right">168469.6</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="odd">
+<td align="left">invoice_total_value</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">1343.76</td>
+<td align="right">2372.20</td>
+<td align="right">-168469.60</td>
+<td align="right">288.99</td>
+<td align="right">517.05</td>
+<td align="right">1436.93</td>
+<td align="right">168469.6</td>
+<td align="left">▁▁▇▁▁</td>
+</tr>
+<tr class="even">
+<td align="left">month</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">7.56</td>
+<td align="right">3.51</td>
+<td align="right">1.00</td>
+<td align="right">5.00</td>
+<td align="right">8.00</td>
+<td align="right">11.00</td>
+<td align="right">12.0</td>
+<td align="left">▃▂▃▃▇</td>
+</tr>
+<tr class="odd">
+<td align="left">day</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">15.02</td>
+<td align="right">8.66</td>
+<td align="right">1.00</td>
+<td align="right">7.00</td>
+<td align="right">15.00</td>
+<td align="right">22.00</td>
+<td align="right">31.0</td>
+<td align="left">▇▆▆▆▅</td>
+</tr>
+<tr class="even">
+<td align="left">weekday</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">3.60</td>
+<td align="right">1.61</td>
+<td align="right">1.00</td>
+<td align="right">2.00</td>
+<td align="right">4.00</td>
+<td align="right">5.00</td>
+<td align="right">6.0</td>
+<td align="left">▇▅▅▅▅</td>
+</tr>
+<tr class="odd">
+<td align="left">hour</td>
+<td align="right">0</td>
+<td align="right">1.00</td>
+<td align="right">13.08</td>
+<td align="right">2.44</td>
+<td align="right">6.00</td>
+<td align="right">11.00</td>
+<td align="right">13.00</td>
+<td align="right">15.00</td>
+<td align="right">20.0</td>
+<td align="left">▁▅▇▆▁</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: POSIXct</strong></p>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="9%" />
+<col width="13%" />
+<col width="18%" />
+<col width="18%" />
+<col width="18%" />
+<col width="8%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">skim_variable</th>
+<th align="right">n_missing</th>
+<th align="right">complete_rate</th>
+<th align="left">min</th>
+<th align="left">max</th>
+<th align="left">median</th>
+<th align="right">n_unique</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">invoice_date</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="left">2010-12-01 08:26:00</td>
+<td align="left">2011-12-09 12:50:00</td>
+<td align="left">2011-07-20 11:22:00</td>
+<td align="right">22050</td>
+</tr>
+</tbody>
+</table>
+<p>Looking at our new data frame, we have a lot more data to work with. We can now organize our data in so many different ways, such as hour of day, or day of the week. Speaking of day of the week, It looks like we only have sales day for day 6. Meaning that sales are not processed one day out of the week. We need to know whether Sunday or Monday equates to day 1 of 7.</p>
+<pre class="r"><code>sales %&gt;% 
+  filter(date == &quot;2010-12-01&quot;) %&gt;% 
+  select(date, weekday)</code></pre>
+<pre><code>## # A tibble: 3,098 x 2
+##    date       weekday
+##    &lt;date&gt;       &lt;dbl&gt;
+##  1 2010-12-01       4
+##  2 2010-12-01       4
+##  3 2010-12-01       4
+##  4 2010-12-01       4
+##  5 2010-12-01       4
+##  6 2010-12-01       4
+##  7 2010-12-01       4
+##  8 2010-12-01       4
+##  9 2010-12-01       4
+## 10 2010-12-01       4
+## # ... with 3,088 more rows</code></pre>
+<p>Going back in the calendar, we know that December 1st 2020, starts on a Wednesday. This means that our week starts on Sunday, and by extension, that our store does not process sales on Saturday.</p>
+<p>With our data in a more usable format, and some extra variables added, we can start our exploratory data analysis.</p>
+</div>
+</div>
+<div id="exploratory-data-analysis" class="section level1">
+<h1>Exploratory Data Analysis</h1>
+<div id="sales-over-time" class="section level2">
+<h2>Sales Over Time</h2>
+<p>First and foremost, let’s look at the sales over the year. Let’s see if anything stands out right off the top before we get into the nitty gritty.</p>
+<pre class="r"><code>sales %&gt;% 
+  group_by(date) %&gt;% 
+  summarise(total = sum(invoice_total_value)) %&gt;% 
+  mutate(flag = ifelse(total &gt;= 8000000, T, F)) %&gt;% 
+  ggplot(aes(date, total)) +
+  geom_col(aes(fill = flag)) +
+  scale_y_continuous(labels = scales::dollar_format()) + 
+  scale_fill_manual(values = c(&#39;#595959&#39;, &#39;red&#39;))+
+  scale_x_date(date_breaks = &quot;months&quot; , date_labels = &quot;%b-%y&quot;)+
+  theme_minimal()+
+  theme(text = element_text(family = &quot;Nunito Bold&quot;, face = &quot;bold&quot;),
+    legend.position = &quot;none&quot;,
+    panel.grid.major.x  = element_blank(),
+    panel.grid.minor.x = element_blank()
+  )+
+  labs(
+    title = &quot;Total Sales by Date&quot;,
+    x = &quot;&quot;,
+    y = &quot;&quot;
+  )</code></pre>
+<p><img src="/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>We’re looking at a graph of total sales over the year. We’ve highlighted total sales per day over $8,000,000. We see a large number of these days in December in both 2010 and 2011. We can assume that December is a big month for this company. We also see a day in August that exceeded $8,000,000. Let’s take a look at that day and see if anything sticks out.</p>
+<pre class="r"><code>sales %&gt;% 
+  filter(month == 8) %&gt;% 
+  group_by(date) %&gt;% 
+  summarise(total = sum(invoice_total_value)) %&gt;% 
+  filter(total &gt;= 8000000)</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   date          total
+##   &lt;date&gt;        &lt;dbl&gt;
+## 1 2011-08-11 9209482.</code></pre>
+<p>August 11th, 2011 had a total sales of 9.2 million. Let’s dive in and see if any orders stand out.</p>
+<pre class="r"><code>sales %&gt;% 
+  filter(date == &quot;2011-08-11&quot;) %&gt;% 
+  group_by(invoice_no) %&gt;% 
+  summarize(total = sum(invoice_total_value)) %&gt;% 
+  arrange(-total) %&gt;% 
+  head(20) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">invoice_no</th>
+<th align="right">total</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">562955</td>
+<td align="right">5887072.78</td>
+</tr>
+<tr class="even">
+<td align="left">563076</td>
+<td align="right">2278928.54</td>
+</tr>
+<tr class="odd">
+<td align="left">563074</td>
+<td align="right">205693.84</td>
+</tr>
+<tr class="even">
+<td align="left">563093</td>
+<td align="right">200606.56</td>
+</tr>
+<tr class="odd">
+<td align="left">562980</td>
+<td align="right">130418.40</td>
+</tr>
+<tr class="even">
+<td align="left">563016</td>
+<td align="right">34799.80</td>
+</tr>
+<tr class="odd">
+<td align="left">562949</td>
+<td align="right">32643.02</td>
+</tr>
+<tr class="even">
+<td align="left">563094</td>
+<td align="right">28079.52</td>
+</tr>
+<tr class="odd">
+<td align="left">562984</td>
+<td align="right">24586.05</td>
+</tr>
+<tr class="even">
+<td align="left">562939</td>
+<td align="right">23787.36</td>
+</tr>
+<tr class="odd">
+<td align="left">562965</td>
+<td align="right">22004.40</td>
+</tr>
+<tr class="even">
+<td align="left">563022</td>
+<td align="right">21986.85</td>
+</tr>
+<tr class="odd">
+<td align="left">562964</td>
+<td align="right">19270.80</td>
+</tr>
+<tr class="even">
+<td align="left">563061</td>
+<td align="right">16496.20</td>
+</tr>
+<tr class="odd">
+<td align="left">563023</td>
+<td align="right">16030.20</td>
+</tr>
+<tr class="even">
+<td align="left">563017</td>
+<td align="right">15675.52</td>
+</tr>
+<tr class="odd">
+<td align="left">563020</td>
+<td align="right">14523.36</td>
+</tr>
+<tr class="even">
+<td align="left">563019</td>
+<td align="right">14297.28</td>
+</tr>
+<tr class="odd">
+<td align="left">563037</td>
+<td align="right">14077.50</td>
+</tr>
+<tr class="even">
+<td align="left">563012</td>
+<td align="right">13375.53</td>
+</tr>
+</tbody>
+</table>
+<p>We’ve got two invoices well over $200,000. Let’s examine those a little bit.</p>
+<pre class="r"><code>sales %&gt;% 
+  filter(invoice_no == 562955) %&gt;% 
+  head(5) %&gt;% 
+  select(-c(invoice_date, day, month, weekday, hour)) %&gt;% 
+  knitr::kable()</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="7%" />
+<col width="7%" />
+<col width="23%" />
+<col width="6%" />
+<col width="7%" />
+<col width="8%" />
+<col width="10%" />
+<col width="7%" />
+<col width="13%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">invoice_no</th>
+<th align="left">stock_code</th>
+<th align="left">description</th>
+<th align="right">quantity</th>
+<th align="right">unit_price</th>
+<th align="right">customer_id</th>
+<th align="left">country</th>
+<th align="right">item_value</th>
+<th align="right">invoice_total_value</th>
+<th align="left">date</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">562955</td>
+<td align="left">22469</td>
+<td align="left">HEART OF WICKER SMALL</td>
+<td align="right">4</td>
+<td align="right">4.13</td>
+<td align="right">NA</td>
+<td align="left">United Kingdom</td>
+<td align="right">16.52</td>
+<td align="right">16677.26</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="even">
+<td align="left">562955</td>
+<td align="left">22470</td>
+<td align="left">HEART OF WICKER LARGE</td>
+<td align="right">4</td>
+<td align="right">5.79</td>
+<td align="right">NA</td>
+<td align="left">United Kingdom</td>
+<td align="right">23.16</td>
+<td align="right">16677.26</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="odd">
+<td align="left">562955</td>
+<td align="left">22485</td>
+<td align="left">SET OF 2 WOODEN MARKET CRATES</td>
+<td align="right">3</td>
+<td align="right">24.96</td>
+<td align="right">NA</td>
+<td align="left">United Kingdom</td>
+<td align="right">74.88</td>
+<td align="right">16677.26</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="even">
+<td align="left">562955</td>
+<td align="left">22488</td>
+<td align="left">NATURAL SLATE RECTANGLE CHALKBOARD</td>
+<td align="right">9</td>
+<td align="right">3.29</td>
+<td align="right">NA</td>
+<td align="left">United Kingdom</td>
+<td align="right">29.61</td>
+<td align="right">16677.26</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="odd">
+<td align="left">562955</td>
+<td align="left">22501</td>
+<td align="left">PICNIC BASKET WICKER LARGE</td>
+<td align="right">15</td>
+<td align="right">20.79</td>
+<td align="right">NA</td>
+<td align="left">United Kingdom</td>
+<td align="right">311.85</td>
+<td align="right">16677.26</td>
+<td align="left">2011-08-11</td>
+</tr>
+</tbody>
+</table>
+<p>Well this first order, we don’t have a customer ID. It would be worth while to find who created this invoice, so we can execute targeted marketing for future repurchases!</p>
+<pre class="r"><code>sales %&gt;% 
+  filter(invoice_no == 563076) %&gt;% 
+  head(5) %&gt;% 
+  select(-c(invoice_date, day, month, weekday, hour)) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<colgroup>
+<col width="7%" />
+<col width="7%" />
+<col width="25%" />
+<col width="6%" />
+<col width="7%" />
+<col width="8%" />
+<col width="8%" />
+<col width="7%" />
+<col width="13%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">invoice_no</th>
+<th align="left">stock_code</th>
+<th align="left">description</th>
+<th align="right">quantity</th>
+<th align="right">unit_price</th>
+<th align="right">customer_id</th>
+<th align="left">country</th>
+<th align="right">item_value</th>
+<th align="right">invoice_total_value</th>
+<th align="left">date</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">563076</td>
+<td align="left">22795</td>
+<td align="left">SWEETHEART RECIPE BOOK STAND</td>
+<td align="right">16</td>
+<td align="right">5.95</td>
+<td align="right">14646</td>
+<td align="left">Netherlands</td>
+<td align="right">95.20</td>
+<td align="right">19150.66</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="even">
+<td align="left">563076</td>
+<td align="left">23176</td>
+<td align="left">ABC TREASURE BOOK BOX</td>
+<td align="right">72</td>
+<td align="right">1.95</td>
+<td align="right">14646</td>
+<td align="left">Netherlands</td>
+<td align="right">140.40</td>
+<td align="right">19150.66</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="odd">
+<td align="left">563076</td>
+<td align="left">22399</td>
+<td align="left">MAGNETS PACK OF 4 CHILDHOOD MEMORY</td>
+<td align="right">108</td>
+<td align="right">1.06</td>
+<td align="right">14646</td>
+<td align="left">Netherlands</td>
+<td align="right">114.48</td>
+<td align="right">19150.66</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="even">
+<td align="left">563076</td>
+<td align="left">23268</td>
+<td align="left">SET OF 2 CERAMIC CHRISTMAS REINDEER</td>
+<td align="right">384</td>
+<td align="right">1.25</td>
+<td align="right">14646</td>
+<td align="left">Netherlands</td>
+<td align="right">480.00</td>
+<td align="right">19150.66</td>
+<td align="left">2011-08-11</td>
+</tr>
+<tr class="odd">
+<td align="left">563076</td>
+<td align="left">23270</td>
+<td align="left">SET OF 2 CERAMIC PAINTED HEARTS</td>
+<td align="right">192</td>
+<td align="right">1.25</td>
+<td align="right">14646</td>
+<td align="left">Netherlands</td>
+<td align="right">240.00</td>
+<td align="right">19150.66</td>
+<td align="left">2011-08-11</td>
+</tr>
+</tbody>
+</table>
+<p>This is a big order out of the Netherlands that we do actually have a customer ID for. When we do our analysis on where our buying comes from, we should pay attention to the Netherlands. Perhaps this one buyer makes up a large portion of that countries total buying.</p>
+</div>
+<div id="unit-drivers" class="section level2">
+<h2>Unit Drivers</h2>
+<p>Let’s identify the largest unit drivers over the year. When we look at the data set, when we look at item descriptions with 1 or 2 units, they seem to be either 1 off or just data entry errors. We could process these out, but for the sake of this exercise, I’m going to filter to items that have a total unit value of at least 3.</p>
+<pre class="r"><code>unit_drivers &lt;- sales %&gt;% 
+  select(description, quantity) %&gt;% 
+  group_by(description) %&gt;% 
+  summarise(total_quantity = sum(quantity)) %&gt;% 
+  filter(total_quantity &gt;3) %&gt;% 
+  ungroup() %&gt;% 
+  arrange(desc(total_quantity)) %&gt;% 
+  head(20)
+
+
+unit_drivers %&gt;% 
+  ggplot(aes(fct_reorder(description, total_quantity), total_quantity, label = total_quantity)) + 
+  geom_col(fill = &quot;#303844&quot;)+
+  geom_text(hjust = 1.1, color = &quot;white&quot;,fontface = &quot;bold&quot;)+
+  coord_flip()+
+  theme_minimal()+
+  theme(text = element_text(family = &quot;Nunito Bold&quot;, face = &quot;bold&quot;),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank()
+          )+
+  labs(
+    title = &quot;Unit Drivers&quot;,
+    subtitle = &quot;For Calendar Year 2011&quot;,
+    x = &quot;&quot;,
+    y = &quot;Units&quot;
+  ) -&gt; graph_unit_drivers
+
+graph_unit_drivers</code></pre>
+<p><img src="/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>We now have a graph of our top 20 unit drivers for the year 2011. If we can find inefficiencies in our sales process for these units, we can correct for them and increase our sales revenue due to the sheer volume of sales that these units produce.</p>
+</div>
+<div id="dollar-drivers" class="section level2">
+<h2>Dollar Drivers</h2>
+<p>Let’s run the same type of analysis and identify our top dollar drivers.</p>
+<pre class="r"><code>dollar_drivers &lt;- sales %&gt;% 
+  select(description, invoice_total_value) %&gt;% 
+  group_by(description) %&gt;% 
+  summarise(total_dollars = sum(invoice_total_value)) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(label_text = paste(&quot;$&quot;,round(total_dollars, digits = 2)),
+         label_text = trimws(label_text))%&gt;% 
+  arrange(desc(total_dollars))%&gt;% 
+  head(20)
+
+dollar_drivers %&gt;% 
+  ggplot(aes(fct_reorder(description, total_dollars), total_dollars, label = label_text)) + 
+  geom_col(fill = &quot;#303844&quot;)+
+  geom_text(hjust = 1.1, color = &quot;white&quot;,fontface = &quot;bold&quot;)+
+  scale_y_continuous(labels=scales::dollar_format())+
+  coord_flip()+
+  theme_minimal()+
+  theme(text = element_text(family = &quot;Nunito Bold&quot;, face = &quot;bold&quot;),
+          axis.ticks = element_blank(),
+          panel.grid = element_blank()
+          )+
+  labs(
+    title = &quot;Dollar Drivers&quot;,
+    subtitle = &quot;For Calendar Year 2011&quot;,
+    x = &quot;&quot;,
+    y = &quot;&quot;
+  ) -&gt; graph_dollar_drivers
+
+graph_dollar_drivers</code></pre>
+<p><img src="/post/2020-09-27-customer-analysis-eda.en_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Looking at the two graphs we can see that a few SKU’s show up in both the dollar drivers and the unit drivers. For instance the <em>Party Bunting</em>, and the <em>Pack of 72 Retrospot Cake Cases</em>. It is safe to say that these two SKU’s make up an important part of the business.</p>
+</div>
+<div id="where-in-the-world-are-our-sales" class="section level2">
+<h2>Where in the World Are Our Sales?</h2>
+<pre class="r"><code>sales_by_country &lt;- sales %&gt;% 
+  select(country, invoice_total_value) %&gt;%
+  group_by(country) %&gt;% 
+  summarise(total_sales_by_country = sum(invoice_total_value)) 
+
+
+sales_by_country %&gt;% 
+  arrange(desc(total_sales_by_country)) %&gt;% 
+  gt() %&gt;% 
+  fmt_currency(
+    # Define the columns to change
+    columns = vars(total_sales_by_country),
+    # How many decimals to round to
+    decimals = 2,
+  ) %&gt;%
+  # Align the now character column to be right-aligned
+  cols_align(
+    align = &quot;right&quot;,
+    columns = vars(total_sales_by_country)) %&gt;% 
+  cols_label(
+    total_sales_by_country = &quot;Total Sales&quot;,
+    country = &quot;Country&quot;
+  )  %&gt;%
+  tab_header(
+    title = md(&quot;**Sales by Country**&quot;),
+    subtitle = &quot;2011&quot;
+  )</code></pre>
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+#ppldeepxvv .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#ppldeepxvv .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 4px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#ppldeepxvv .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#ppldeepxvv .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#ppldeepxvv .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#ppldeepxvv .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#ppldeepxvv .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#ppldeepxvv .gt_group_heading {
+  padding: 8px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ppldeepxvv .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#ppldeepxvv .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#ppldeepxvv .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#ppldeepxvv .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#ppldeepxvv .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 12px;
+}
+
+#ppldeepxvv .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ppldeepxvv .gt_first_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#ppldeepxvv .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#ppldeepxvv .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ppldeepxvv .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#ppldeepxvv .gt_sourcenote {
+  font-size: 90%;
+  padding: 4px;
+}
+
+#ppldeepxvv .gt_left {
+  text-align: left;
+}
+
+#ppldeepxvv .gt_center {
+  text-align: center;
+}
+
+#ppldeepxvv .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#ppldeepxvv .gt_font_normal {
+  font-weight: normal;
+}
+
+#ppldeepxvv .gt_font_bold {
+  font-weight: bold;
+}
+
+#ppldeepxvv .gt_font_italic {
+  font-style: italic;
+}
+
+#ppldeepxvv .gt_super {
+  font-size: 65%;
+}
+
+#ppldeepxvv .gt_footnote_marks {
+  font-style: italic;
+  font-size: 65%;
+}
+</style>
+<div id="ppldeepxvv" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+  <thead class="gt_header">
+    <tr>
+      <th colspan="2" class="gt_heading gt_title gt_font_normal" style><strong>Sales by Country</strong></th>
+    </tr>
+    <tr>
+      <th colspan="2" class="gt_heading gt_subtitle gt_font_normal gt_bottom_border" style>2011</th>
+    </tr>
+  </thead>
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1">Country</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1">Total Sales</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr>
+      <td class="gt_row gt_center">United Kingdom</td>
+      <td class="gt_row gt_right">$652,672,300.00</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Netherlands</td>
+      <td class="gt_row gt_right">$18,093,270.11</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Australia</td>
+      <td class="gt_row gt_right">$10,524,587.39</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">EIRE</td>
+      <td class="gt_row gt_right">$9,958,173.60</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Germany</td>
+      <td class="gt_row gt_right">$7,728,452.33</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">France</td>
+      <td class="gt_row gt_right">$7,332,944.50</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Switzerland</td>
+      <td class="gt_row gt_right">$4,163,775.10</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Spain</td>
+      <td class="gt_row gt_right">$2,172,299.21</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Norway</td>
+      <td class="gt_row gt_right">$1,891,707.24</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Portugal</td>
+      <td class="gt_row gt_right">$1,294,880.06</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Belgium</td>
+      <td class="gt_row gt_right">$1,179,874.95</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Japan</td>
+      <td class="gt_row gt_right">$931,334.20</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Israel</td>
+      <td class="gt_row gt_right">$905,426.91</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Channel Islands</td>
+      <td class="gt_row gt_right">$858,722.68</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Cyprus</td>
+      <td class="gt_row gt_right">$848,770.76</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Sweden</td>
+      <td class="gt_row gt_right">$774,996.46</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Finland</td>
+      <td class="gt_row gt_right">$735,092.37</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Italy</td>
+      <td class="gt_row gt_right">$630,858.70</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Singapore</td>
+      <td class="gt_row gt_right">$553,321.72</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Hong Kong</td>
+      <td class="gt_row gt_right">$522,479.73</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Denmark</td>
+      <td class="gt_row gt_right">$466,853.60</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Austria</td>
+      <td class="gt_row gt_right">$307,311.71</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Unspecified</td>
+      <td class="gt_row gt_right">$189,661.49</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Poland</td>
+      <td class="gt_row gt_right">$168,920.07</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Canada</td>
+      <td class="gt_row gt_right">$163,279.88</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Greece</td>
+      <td class="gt_row gt_right">$147,157.84</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Iceland</td>
+      <td class="gt_row gt_right">$134,181.24</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Malta</td>
+      <td class="gt_row gt_right">$87,997.60</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Lebanon</td>
+      <td class="gt_row gt_right">$76,224.60</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">United Arab Emirates</td>
+      <td class="gt_row gt_right">$62,809.68</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">RSA</td>
+      <td class="gt_row gt_right">$58,133.98</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">USA</td>
+      <td class="gt_row gt_right">$38,928.34</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Brazil</td>
+      <td class="gt_row gt_right">$36,595.20</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Lithuania</td>
+      <td class="gt_row gt_right">$32,208.50</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">European Community</td>
+      <td class="gt_row gt_right">$29,123.05</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Czech Republic</td>
+      <td class="gt_row gt_right">$10,779.66</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Bahrain</td>
+      <td class="gt_row gt_right">$6,328.20</td>
+    </tr>
+    <tr>
+      <td class="gt_row gt_center">Saudi Arabia</td>
+      <td class="gt_row gt_right">$1,298.53</td>
+    </tr>
+  </tbody>
+  
+  
+</table></div>
+<p>The vast, vast majority of the yearly sales came from the UK. Considering that this business is based there, that makes sense. Looking at our lowest value countries, We have Saudi Arabia, Bahrain and The Czech Republic. If there is marketing dollars being spent there currently, it may be wise to move it else where.</p>
+</div>
+</div>
+<div id="wrap-up" class="section level1">
+<h1>Wrap Up</h1>
+<p>We took a look at our sales data from this anonymized store data set. We look at unit drivers, dollar drivers and which countries produced the most sales. In the future it would be beneficial to examine customer segmentation, perhaps utilizing KNN. I will save that for a future blog post however.</p>
+</div>
+
+    </div>
+
+    
+
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/eda/">EDA</a>
+  
+  <a class="badge badge-light" href="/tag/customer-analysis/">Customer Analysis</a>
+  
+  <a class="badge badge-light" href="/tag/r/">R</a>
+  
+</div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=/post/customer-analysis-eda/&amp;text=Customer%20Analysis%20-%20EDA" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=/post/customer-analysis-eda/&amp;t=Customer%20Analysis%20-%20EDA" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Customer%20Analysis%20-%20EDA&amp;body=/post/customer-analysis-eda/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=/post/customer-analysis-eda/&amp;title=Customer%20Analysis%20-%20EDA" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Customer%20Analysis%20-%20EDA%20/post/customer-analysis-eda/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=/post/customer-analysis-eda/&amp;title=Customer%20Analysis%20-%20EDA" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+  
+    
+    
+    
+      
+    
+    
+    
+    <div class="media author-card content-widget-hr">
+      
+        
+        <img class="avatar mr-3 avatar-circle" src="/author/brett-moxham/avatar_hue140c197c87befe9cf91b834b875e040_977040_270x270_fill_q90_lanczos_center.jpg" alt="Brett Moxham">
+      
+
+      <div class="media-body">
+        <h5 class="card-title"><a href="/">Brett Moxham</a></h5>
+        <h6 class="card-subtitle">Inventory Coordinator</h6>
+        <p class="card-text">Currently working to effectively and efficiently coordinate inventory flows from distribution centers out to retail stores for Cabelas Canada.</p>
+        <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/brettmoxham" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/brett-moxham/" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/bmoxO9" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+</ul>
+
+      </div>
+    </div>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <div class="article-widget content-widget-hr">
+    <h3>Related</h3>
+    <ul>
+      
+      <li><a href="/post/european-energy-tidy-tuesday/">European Energy (Tidy Tuesday)</a></li>
+      
+    </ul>
+  </div>
+  
+
+
+
+
+
+  </div>
+</article>
+
+      
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js" integrity="sha512-1+qUtKoh9XZW7j+6LhRMAyOrgSQKenQ4mluTR+cvxXjP1Z54RxZuzstR/H9kgPXQsVB8IW7DMDFUJpzLjvhGSQ==" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js" integrity="sha512-7t8APmYpzEsZP7CYoA7RfMPV9Bb+PJHa9x2WiUnDXZx3XHveuyWUtvNOexhkierl5flZ3tr92dP1mMS+SGlD+A==" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/languages/r.min.js"></script>
+        
+      
+
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js" integrity="sha256-EErZamuLefUnbMBQbsEqu1USa+btR2oIlCpBJbyD4/g=" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>const code_highlighting = true;</script>
+    
+
+    
+    
+    <script>const isSiteThemeDark = false;</script>
+    
+
+    
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks",
+        'slides' : "Slides"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/academic.min.66c553246b0f279a03be6e5597f72b52.js"></script>
+
+    
+
+
+
+
+
+
+  
+  
+  <div class="container">
+    <footer class="site-footer">
+  
+  <p class="powered-by">
+    
+      <a href="/privacy/">Privacy Policy</a>
+    
+    
+       &middot; 
+      <a href="/terms/">Terms</a>
+    
+  </p>
+  
+
+  <p class="powered-by">
+    
+  </p>
+
+  
+  
+
+
+
+
+
+
+  <p class="powered-by">
+    
+    Published with
+    <a href="https://sourcethemes.com/academic/" target="_blank" rel="noopener">Academic Website Builder</a>
+    
+
+    
+    <span class="float-right" aria-hidden="true">
+      <a href="#" class="back-to-top">
+        <span class="button_icon">
+          <i class="fas fa-chevron-up fa-2x"></i>
+        </span>
+      </a>
+    </span>
+    
+  </p>
+</footer>
+
+  </div>
+  
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
