@@ -5,12 +5,602 @@
     <link>/tag/r/</link>
       <atom:link href="/tag/r/index.xml" rel="self" type="application/rss+xml" />
     <description>R</description>
-    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Sun, 27 Sep 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Fri, 16 Oct 2020 00:00:00 +0000</lastBuildDate>
     <image>
       <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
       <title>R</title>
       <link>/tag/r/</link>
     </image>
+    
+    <item>
+      <title>Customer Analysis Part 2</title>
+      <link>/post/customer-analysis-part-2/</link>
+      <pubDate>Fri, 16 Oct 2020 00:00:00 +0000</pubDate>
+      <guid>/post/customer-analysis-part-2/</guid>
+      <description>
+
+&lt;div id=&#34;TOC&#34;&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#part-1&#34;&gt;Part 1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#libaries-and-data&#34;&gt;Libaries and Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#rfm-analysis&#34;&gt;RFM Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#clustering&#34;&gt;Clustering&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#set-up&#34;&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#final-model&#34;&gt;Final Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cluster-profiles&#34;&gt;Cluster Profiles&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#wrap-up&#34;&gt;Wrap Up&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;part-1&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Part 1&lt;/h1&gt;
+&lt;p&gt;This is a continuation of a previous post. If you haven’t already, give it a read &lt;a href=&#34;https://brettmoxham.netlify.app/post/customer-analysis-eda/&#34;&gt;here&lt;/a&gt;. We take an exploratory data analysis approach with a data set from a retailer/wholesaler from the UK. In that post we looked at dollar drivers, unit drivers and where sales were originating from. This will examine clusters of customers, trying to identify which customers are similar.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;libaries-and-data&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Libaries and Data&lt;/h1&gt;
+&lt;p&gt;Let’s load in our data and our libraries. We can find our &lt;code&gt;sales&lt;/code&gt; csv in my &lt;a href=&#34;https://github.com/BrettMoxham/Random-Projects/blob/master/Consumer%20Data%20-%20EDA/sales.csv&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(rfm)
+
+sales &amp;lt;- read_csv(&amp;quot;https://raw.githubusercontent.com/BrettMoxham/Random-Projects/master/Consumer%20Data%20-%20EDA/sales.csv&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;rfm-analysis&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;RFM Analysis&lt;/h1&gt;
+&lt;p&gt;RFM analysis, is a great way to compare and contrast customers. RFM stands for &lt;strong&gt;Recency Frequency Monetary&lt;/strong&gt;. We want to see how recently a customer has purchased from us, how often they do so, and how much they spend. Those 3 metrics can then be used to cluster our customers together into groups. We can then extrapolate the groupings into a customer profile, and we can use these customer profiles to help group other customers into those profiles as well. These profiles can be used with things such as target marketing, so that we can tailor our marketing approach to each individual customer. Let’s run some RFM analysis on our sales data. However, we still need to clean our data even further. We are going to use the &lt;code&gt;rfm&lt;/code&gt; package for our analysis. We need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The number of orders per customer&lt;/li&gt;
+&lt;li&gt;Number of days since last transaction&lt;/li&gt;
+&lt;li&gt;Date of the analysis (for this we will use January 1st 2012, as this data covers 2010/2011)&lt;/li&gt;
+&lt;li&gt;Total revenue by customer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales_rfm &amp;lt;- sales %&amp;gt;% 
+  group_by(customer_id) %&amp;gt;% 
+  summarise(
+    num_trans = n_distinct(invoice_no),
+    num_days = as.Date(&amp;quot;2012/01/01&amp;quot;) - max(date),
+    total_revenue = sum(item_value)
+            ) %&amp;gt;% 
+  ungroup() %&amp;gt;% 
+  filter(!is.na(customer_id))
+
+rfm_table &amp;lt;- rfm_table_customer(sales_rfm, 
+                   customer_id = &amp;quot;customer_id&amp;quot;,
+                   n_transactions = &amp;quot;num_trans&amp;quot;,
+                   recency_days = &amp;quot;num_days&amp;quot;,
+                   total_revenue = &amp;quot;total_revenue&amp;quot;,
+                   analysis_date = as.Date(&amp;quot;2012/01/01&amp;quot;)
+                   )
+knitr::kable(head(rfm_table$rfm))&lt;/code&gt;&lt;/pre&gt;
+&lt;table style=&#34;width:100%;&#34;&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;11%&#34; /&gt;
+&lt;col width=&#34;12%&#34; /&gt;
+&lt;col width=&#34;16%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;15%&#34; /&gt;
+&lt;col width=&#34;14%&#34; /&gt;
+&lt;col width=&#34;9%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;recency_days&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;transaction_count&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;amount&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;recency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;frequency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;monetary_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;rfm_score&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12346&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;348 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;121&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12347&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;25 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4310.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;545&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12348&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;98 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1797.24&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;234&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12349&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;41 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1757.55&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;414&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12350&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;333 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;334.40&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;112&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12352&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;59 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1545.41&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;354&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We now have a table outlining our RFM data. Each customer is graded on a 1 - 5 scale, with 1 being least valuable and 5 being most. A customer who ranks as a 5,5,5 is our most valuable customer. They spend the most, are buying the most frequently and have bought recently. On the other side, a 1,1,1 customer is not valuable at all, and we should not waste time pursuing them for future sales. They buy small amounts infrequently and haven’t bought recently at all.&lt;/p&gt;
+&lt;p&gt;Let’s visualize our data here firstly.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rfm_fm_plot(rfm_table)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;
+Our customers are clustered quite close together for the majority of customers. However we see a few who either spend quite a bit more than others, or who are sending in invoices quite often.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;clustering&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Clustering&lt;/h1&gt;
+&lt;p&gt;We can use the K-Means algorithm to group our customers. K means is an unsupervised algorithm that takes &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; random centroids (these &lt;strong&gt;k&lt;/strong&gt; points are in our data points already, and chosen at random). The centroids then define a cluster where in the remaining data points are assigned to their nearest centroid (1 and only 1 centroid) by euclidean distance. The centroids are then shifted such that the total euclidean distance is reduced for each cluster (some data points may change clusters in this shifting). This process repeats until there is no shift in centroids that will reduce the euclidean distance of their clusters anymore. The final shift will produce the final centroids and in turn the final clusters for the data.&lt;/p&gt;
+&lt;div id=&#34;set-up&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Set Up&lt;/h2&gt;
+&lt;p&gt;Firstly, we need to get our rfm scores only. Our current &lt;code&gt;rfm_table&lt;/code&gt; has a bunch of extra data that we won’t use in our K-means algorithm.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rfm_scores &amp;lt;- rfm_table$rfm[,(5:7)]
+
+knitr::kable(head(rfm_scores))&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;recency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;frequency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;monetary_score&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Now we a data set with only our recency, frequency and monetary scores. Each is still representative of our customers, but we no longer need the &lt;code&gt;customer_id&lt;/code&gt; value as we are only trying to get a sense of what each customer is. We can now run our K-means algorithm. Let’s arbitrarily use a &lt;strong&gt;k&lt;/strong&gt; value equal to 5. This will create 5 clusters.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k_means_basic &amp;lt;- kmeans(rfm_scores, centers = 5)
+head(k_means_basic$cluster)&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## [1] 5 3 1 4 5 3&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’ve run our K-means algorithm and assigned each customer to a cluster. We’ve arbitrarily chosen 5 as our number of clusters, however this may not be the best number to chose. We need a way to determine the best number of clusters. We can do this by using a function, and iterating over a vector of &lt;strong&gt;k&lt;/strong&gt; values.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k &amp;lt;- as.vector(2:20)
+set.seed(123)
+
+kmeans_function &amp;lt;- function(k){
+  
+  cluster &amp;lt;- kmeans(rfm_scores, centers = k)
+  return(cluster$tot.withinss)
+}
+
+cluster_withinness &amp;lt;- sapply(k, kmeans_function)
+
+cluster_df &amp;lt;- data.frame(k, cluster_withinness)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What we’ve done here is iterate through bunch of different &lt;strong&gt;k&lt;/strong&gt; values and taken the sum of squares for each &lt;strong&gt;k&lt;/strong&gt; value. We can graph our &lt;strong&gt;k&lt;/strong&gt; values and our sum of squares to create an elbow plot. Where our elbow plot “bends” is our best fit value for &lt;strong&gt;k&lt;/strong&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(cluster_df, aes(x = k, y = cluster_withinness)) +
+  geom_point()+
+  geom_line()+
+  labs(
+    title = &amp;quot;Which K Should We Use?&amp;quot;,
+    x = &amp;quot;K&amp;quot;,
+    y = &amp;quot;Sum of Squares&amp;quot;
+  )+
+  theme_light()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;final-model&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Final Model&lt;/h2&gt;
+&lt;p&gt;It looks like this we have a elbow somewhere around 5 to 7. Let’s use 7 as our &lt;strong&gt;k&lt;/strong&gt; value. We can now re-run our K-means algorithm to view our clusters and their centers.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;set.seed(123)
+k_means_final &amp;lt;- kmeans(rfm_scores, centers = 7)
+
+k_means_final$centers&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These are our clusters, with their cluster center values. Looking at the values, it seems like cluster 2 represents our best customers. They buy a lot, frequently and have bought most recently. Cluster 1 represents our worst customers. They don’t buy a often, haven’t bought lots, and the last time they bought was a while ago. Examining the remaining clusters we can build a profile of our clusters. For instance looking at cluster 6. They are a customer who’ve bought something for the first time recently, but just a small amount. Let’s see if we can identify a profile for our clusters.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;cluster-profiles&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Cluster Profiles&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k_means_final$centers&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Cluster Profiles:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;These customers buy somewhat frequently, however haven’t in some time. It may be worth to send them a contact to see if they are worth following up on.&lt;/li&gt;
+&lt;li&gt;Our best customers - They a lot, frequently and have done so recently. Keep these guys happy!&lt;/li&gt;
+&lt;li&gt;They buy a relatively large amount, in frequently and have done so recently. No real need to send them any incentives, as they are unlikely to buy right away.&lt;/li&gt;
+&lt;li&gt;These are our 2nd best customers, They buy a lot, and frequently. It may be worth exploring incentives to see if you can convert them to the ranks of best customers.&lt;/li&gt;
+&lt;li&gt;These are in the range of our 2nd best customers. They buy a lot and frequently, but haven’t bought in a while. It may be that they are moving away from our services. It would be worth while to touch base with these customers so that we can try and salvage them as customers.&lt;/li&gt;
+&lt;li&gt;These are new customers. Ones who have bought recently but only a small amount and most likely for the first time. Targeted marketing may be worth while to help convert them to regular customers.&lt;/li&gt;
+&lt;li&gt;These are dead customers. They don’t buy much, and haven’t done recently. We should move on from any marketing to these customers, as they are unlikely to be valuable to us.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Let’s add our cluster designations back into our original data, so that we can see which customer fits into which cluster.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;customer_clusters &amp;lt;- augment(k_means_final, rfm_table$rfm) %&amp;gt;% 
+  select(customer_id, .cluster)
+
+sales_clustered &amp;lt;- sales_rfm %&amp;gt;% 
+  left_join(customer_clusters, by = &amp;quot;customer_id&amp;quot;)
+head(sales_clustered) %&amp;gt;%
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;num_trans&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;num_days&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;total_revenue&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;.cluster&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12346&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;348 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;7&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12347&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;25 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4310.00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12348&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;98 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1797.24&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12349&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;41 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1757.55&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12350&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;333 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;334.40&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;3&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12352&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;59 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1545.41&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Now we can identify which customer belongs to which cluster. We can now identify which customers can use some marketing and which we can stop focusing on. For instance, customer 12346 is in cluster 7 and is a dead customer. If we are marketing towards them, we could allocate those dollars to other customers and see a larger return. Let’s identify our a few of our “new” customers. This would equate to cluster 6.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales_clustered %&amp;gt;% 
+  filter(.cluster == 6) %&amp;gt;% 
+  head(15) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;num_trans&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;num_days&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;total_revenue&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;.cluster&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12371&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;67 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1887.96&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12379&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;104 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;850.29&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12394&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;86 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1272.48&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12403&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;72 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;409.70&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12413&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;89 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;694.15&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12422&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;118 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;803.56&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12434&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;107 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;765.19&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12452&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;39 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;428.57&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12458&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;94 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;947.40&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12468&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;166 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;724.04&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12492&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;86 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;263.21&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12493&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;188 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;416.79&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12498&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;44 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;403.70&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12527&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;104 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;348.71&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12552&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;61 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;437.82&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;6&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;As we can see, these customers have very few purchases and a relatively low total order value. But they also have bought recently. We can try some marketing towards these customers in order to convert them to a more valuable customer! Let’s take a look at our “faltering customers” in cluster 5.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales_clustered %&amp;gt;% 
+  filter(.cluster == 5) %&amp;gt;% 
+  head(15) %&amp;gt;% 
+  knitr::kable()&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;num_trans&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;num_days&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;total_revenue&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;.cluster&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12349&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;41 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1757.55&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12367&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;27 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;168.90&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12374&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;48 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;742.93&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12375&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;25 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;455.42&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12391&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;44 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;460.89&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12442&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;26 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;172.06&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12445&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;45 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;133.40&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12478&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;26 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;680.99&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12504&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;41 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;114.00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12508&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;49 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;398.27&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12531&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;37 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;125.22&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12532&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;53 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;349.83&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12538&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;52 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;363.95&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12544&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;52 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;355.70&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12558&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;24 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.00&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We can see a stark difference between cluster 5 and 6. As we identified in our cluster portfolios, cluster 6 was our “new customers” and cluster 5 is our “almost 2nd best” customer. They are customers are who used to buy lots and frequently, how ever haven’t done so in a while. We can see this manifested when we view some of the customers who fall in this cluster. Customer 12352 has 11 separate transactions, however hasn’t bough in 59 days. Customer 12409 has 7 different transactions but hasn’t bought in 101 days! These customers are worth touching base with to see if we can re-ignite purchasing.&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;wrap-up&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Wrap Up&lt;/h1&gt;
+&lt;p&gt;We’ve run a combination of recency frequency monetary analysis and K-Means algorithms on our sales data. What we’ve worked out is a profile of our customers. We can use these profiles to better utilize our marketing efforts. For instance, if we identify a customer as one in cluster 7 of our profile, we would want to reduce or all out stop marketing towards them. More likely than not, that customer is dead weight. However if we identify a customer as being in cluster 5, we may want to touch base with them. These customers were once very good, however they have stop buying for one reason or another. We will, at least, want to monitor these customers in case they slip to a lower quality customer.&lt;/p&gt;
+&lt;/div&gt;
+</description>
+    </item>
     
     <item>
       <title>Customer Analysis - EDA</title>
@@ -1029,7 +1619,7 @@ sales_by_country %&amp;gt;%
   font-family: -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Oxygen, Ubuntu, Cantarell, &#39;Helvetica Neue&#39;, &#39;Fira Sans&#39;, &#39;Droid Sans&#39;, Arial, sans-serif;
 }
 
-#ppldeepxvv .gt_table {
+#ilcbsqixtk .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1054,7 +1644,7 @@ sales_by_country %&amp;gt;%
   border-left-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_heading {
+#ilcbsqixtk .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -1066,7 +1656,7 @@ sales_by_country %&amp;gt;%
   border-right-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_title {
+#ilcbsqixtk .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -1076,7 +1666,7 @@ sales_by_country %&amp;gt;%
   border-bottom-width: 0;
 }
 
-#ppldeepxvv .gt_subtitle {
+#ilcbsqixtk .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -1086,13 +1676,13 @@ sales_by_country %&amp;gt;%
   border-top-width: 0;
 }
 
-#ppldeepxvv .gt_bottom_border {
+#ilcbsqixtk .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_col_headings {
+#ilcbsqixtk .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1107,7 +1697,7 @@ sales_by_country %&amp;gt;%
   border-right-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_col_heading {
+#ilcbsqixtk .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1127,7 +1717,7 @@ sales_by_country %&amp;gt;%
   overflow-x: hidden;
 }
 
-#ppldeepxvv .gt_column_spanner_outer {
+#ilcbsqixtk .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1139,15 +1729,15 @@ sales_by_country %&amp;gt;%
   padding-right: 4px;
 }
 
-#ppldeepxvv .gt_column_spanner_outer:first-child {
+#ilcbsqixtk .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ppldeepxvv .gt_column_spanner_outer:last-child {
+#ilcbsqixtk .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ppldeepxvv .gt_column_spanner {
+#ilcbsqixtk .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1159,7 +1749,7 @@ sales_by_country %&amp;gt;%
   width: 100%;
 }
 
-#ppldeepxvv .gt_group_heading {
+#ilcbsqixtk .gt_group_heading {
   padding: 8px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1181,7 +1771,7 @@ sales_by_country %&amp;gt;%
   vertical-align: middle;
 }
 
-#ppldeepxvv .gt_empty_group_heading {
+#ilcbsqixtk .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1196,15 +1786,15 @@ sales_by_country %&amp;gt;%
   vertical-align: middle;
 }
 
-#ppldeepxvv .gt_from_md &gt; :first-child {
+#ilcbsqixtk .gt_from_md &gt; :first-child {
   margin-top: 0;
 }
 
-#ppldeepxvv .gt_from_md &gt; :last-child {
+#ilcbsqixtk .gt_from_md &gt; :last-child {
   margin-bottom: 0;
 }
 
-#ppldeepxvv .gt_row {
+#ilcbsqixtk .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1223,7 +1813,7 @@ sales_by_country %&amp;gt;%
   overflow-x: hidden;
 }
 
-#ppldeepxvv .gt_stub {
+#ilcbsqixtk .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -1235,7 +1825,7 @@ sales_by_country %&amp;gt;%
   padding-left: 12px;
 }
 
-#ppldeepxvv .gt_summary_row {
+#ilcbsqixtk .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1245,7 +1835,7 @@ sales_by_country %&amp;gt;%
   padding-right: 5px;
 }
 
-#ppldeepxvv .gt_first_summary_row {
+#ilcbsqixtk .gt_first_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1255,7 +1845,7 @@ sales_by_country %&amp;gt;%
   border-top-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_grand_summary_row {
+#ilcbsqixtk .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -1265,7 +1855,7 @@ sales_by_country %&amp;gt;%
   padding-right: 5px;
 }
 
-#ppldeepxvv .gt_first_grand_summary_row {
+#ilcbsqixtk .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -1275,11 +1865,11 @@ sales_by_country %&amp;gt;%
   border-top-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_striped {
+#ilcbsqixtk .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ppldeepxvv .gt_table_body {
+#ilcbsqixtk .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -1288,7 +1878,7 @@ sales_by_country %&amp;gt;%
   border-bottom-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_footnotes {
+#ilcbsqixtk .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1302,13 +1892,13 @@ sales_by_country %&amp;gt;%
   border-right-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_footnote {
+#ilcbsqixtk .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding: 4px;
 }
 
-#ppldeepxvv .gt_sourcenotes {
+#ilcbsqixtk .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -1322,46 +1912,46 @@ sales_by_country %&amp;gt;%
   border-right-color: #D3D3D3;
 }
 
-#ppldeepxvv .gt_sourcenote {
+#ilcbsqixtk .gt_sourcenote {
   font-size: 90%;
   padding: 4px;
 }
 
-#ppldeepxvv .gt_left {
+#ilcbsqixtk .gt_left {
   text-align: left;
 }
 
-#ppldeepxvv .gt_center {
+#ilcbsqixtk .gt_center {
   text-align: center;
 }
 
-#ppldeepxvv .gt_right {
+#ilcbsqixtk .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ppldeepxvv .gt_font_normal {
+#ilcbsqixtk .gt_font_normal {
   font-weight: normal;
 }
 
-#ppldeepxvv .gt_font_bold {
+#ilcbsqixtk .gt_font_bold {
   font-weight: bold;
 }
 
-#ppldeepxvv .gt_font_italic {
+#ilcbsqixtk .gt_font_italic {
   font-style: italic;
 }
 
-#ppldeepxvv .gt_super {
+#ilcbsqixtk .gt_super {
   font-size: 65%;
 }
 
-#ppldeepxvv .gt_footnote_marks {
+#ilcbsqixtk .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 &lt;/style&gt;
-&lt;div id=&#34;ppldeepxvv&#34; style=&#34;overflow-x:auto;overflow-y:auto;width:auto;height:auto;&#34;&gt;&lt;table class=&#34;gt_table&#34;&gt;
+&lt;div id=&#34;ilcbsqixtk&#34; style=&#34;overflow-x:auto;overflow-y:auto;width:auto;height:auto;&#34;&gt;&lt;table class=&#34;gt_table&#34;&gt;
   &lt;thead class=&#34;gt_header&#34;&gt;
     &lt;tr&gt;
       &lt;th colspan=&#34;2&#34; class=&#34;gt_heading gt_title gt_font_normal&#34; style&gt;&lt;strong&gt;Sales by Country&lt;/strong&gt;&lt;/th&gt;

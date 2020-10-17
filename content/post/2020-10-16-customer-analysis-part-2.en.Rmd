@@ -1,0 +1,217 @@
+---
+title: Customer Analysis Part 2
+author: Brett Moxham
+date: '2020-10-16'
+slug: customer-analysis-part-2
+categories:
+  - Modeling
+tags:
+  - R
+  - EDA
+  - Customer Analysis
+  - K-Means
+subtitle: ''
+summary: 'Analyzing Customers using K-Means Algo'
+authors: []
+lastmod: '2020-10-16T19:23:02-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: false
+output:
+  blogdown::html_page:
+    toc: true
+    
+
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+```
+
+# Part 1
+
+This is a continuation of a previous post. If you haven't already, give it a read [here](https://brettmoxham.netlify.app/post/customer-analysis-eda/). We take an exploratory data analysis approach with a data set from a retailer/wholesaler from the UK. In that post we looked at dollar drivers, unit drivers and where sales were originating from. This will examine clusters of customers, trying to identify which customers are similar. 
+
+# Libaries and Data
+
+Let's load in our data and our libraries. We can find our `sales` csv in my [github](https://github.com/BrettMoxham/Random-Projects/blob/master/Consumer Data - EDA/sales.csv).
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(rfm)
+
+sales <- read_csv("https://raw.githubusercontent.com/BrettMoxham/Random-Projects/master/Consumer%20Data%20-%20EDA/sales.csv")
+```
+
+# RFM Analysis
+
+RFM analysis, is a great way to compare and contrast customers. RFM stands for **Recency Frequency Monetary**. We want to see how recently a customer has purchased from us, how often they do so, and how much they spend. Those 3 metrics can then be used to cluster our customers together into groups. We can then extrapolate the groupings into a customer profile, and we can use these customer profiles to help group other customers into those profiles as well. These profiles can be used with things such as target marketing, so that we can tailor our marketing approach to each individual customer. Let's run some RFM analysis on our sales data. However, we still need to clean our data even further. We are going to use the `rfm` package for our analysis. We need:
+
+* The number of orders per customer
+* Number of days since last transaction
+* Date of the analysis (for this we will use January 1st 2012, as this data covers 2010/2011)
+* Total revenue by customer
+
+```{r}
+sales_rfm <- sales %>% 
+  group_by(customer_id) %>% 
+  summarise(
+    num_trans = n_distinct(invoice_no),
+    num_days = as.Date("2012/01/01") - max(date),
+    total_revenue = sum(item_value)
+            ) %>% 
+  ungroup() %>% 
+  filter(!is.na(customer_id))
+
+rfm_table <- rfm_table_customer(sales_rfm, 
+                   customer_id = "customer_id",
+                   n_transactions = "num_trans",
+                   recency_days = "num_days",
+                   total_revenue = "total_revenue",
+                   analysis_date = as.Date("2012/01/01")
+                   )
+knitr::kable(head(rfm_table$rfm))
+```
+
+We now have a table outlining our RFM data. Each customer is graded on a 1 - 5 scale, with 1 being least valuable and 5 being most. A customer who ranks as a 5,5,5 is our most valuable customer. They spend the most, are buying the most frequently and have bought recently. On the other side, a 1,1,1 customer is not valuable at all, and we should not waste time pursuing them for future sales. They buy small amounts infrequently and haven't bought recently at all. 
+
+Let's visualize our data here firstly. 
+
+```{r}
+rfm_fm_plot(rfm_table)
+```
+Our customers are clustered quite close together for the majority of customers. However we see a few who either spend quite a bit more than others, or who are sending in invoices quite often.
+
+# Clustering 
+
+We can use the K-Means algorithm to group our customers. K means is an unsupervised algorithm that takes $k$ random centroids (these **k** points are in our data points already, and chosen at random). The centroids then define a cluster where in the remaining data points are assigned to their nearest centroid (1 and only 1 centroid) by euclidean distance. The centroids are then shifted such that the total euclidean distance is reduced for each cluster (some data points may change clusters in this shifting). This process repeats until there is no shift in centroids that will reduce the euclidean distance of their clusters anymore. The final shift will produce the final centroids and in turn the final clusters for the data. 
+
+## Set Up
+
+Firstly, we need to get our rfm scores only. Our current `rfm_table` has a bunch of extra data that we won't use in our K-means algorithm.
+
+```{r}
+rfm_scores <- rfm_table$rfm[,(5:7)]
+
+knitr::kable(head(rfm_scores))
+```
+Now we a data set with only our recency, frequency and monetary scores. Each is still representative of our customers, but we no longer need the `customer_id` value as we are only trying to get a sense of what each customer is. We can now run our K-means algorithm. Let's arbitrarily use a **k** value equal to 5. This will create 5 clusters.
+
+```{r}
+k_means_basic <- kmeans(rfm_scores, centers = 5)
+head(k_means_basic$cluster)
+```
+
+We've run our K-means algorithm and assigned each customer to a cluster. We've arbitrarily chosen 5 as our number of clusters, however this may not be the best number to chose. We need a way to determine the best number of clusters. We can do this by using a function, and iterating over a vector of **k** values. 
+
+```{r}
+k <- as.vector(2:20)
+set.seed(123)
+
+kmeans_function <- function(k){
+  
+  cluster <- kmeans(rfm_scores, centers = k)
+  return(cluster$tot.withinss)
+}
+
+cluster_withinness <- sapply(k, kmeans_function)
+
+cluster_df <- data.frame(k, cluster_withinness)
+```
+
+What we've done here is iterate through bunch of different **k** values and taken the sum of squares for each **k** value. We can graph our **k** values and our sum of squares to create an elbow plot. Where our elbow plot "bends" is our best fit value for **k**.
+
+```{r}
+ggplot(cluster_df, aes(x = k, y = cluster_withinness)) +
+  geom_point()+
+  geom_line()+
+  labs(
+    title = "Which K Should We Use?",
+    x = "K",
+    y = "Sum of Squares"
+  )+
+  theme_light()
+```
+
+## Final Model
+
+It looks like this we have a elbow somewhere around 5 to 7. Let's use 7 as our **k** value. We can now re-run our K-means algorithm to view our clusters and their centers. 
+
+```{r}
+set.seed(123)
+k_means_final <- kmeans(rfm_scores, centers = 7)
+
+k_means_final$centers
+```
+
+These are our clusters, with their cluster center values. Looking at the values, it seems like cluster 2 represents our best customers. They buy a lot, frequently and have bought most recently. Cluster 1 represents our worst customers. They don't buy a often, haven't bought lots, and the last time they bought was a while ago. Examining the remaining clusters we can build a profile of our clusters. For instance looking at cluster 6. They are a customer who've bought something for the first time recently, but just a small amount. Let's see if we can identify a profile for our clusters. 
+
+## Cluster Profiles
+
+```{r}
+k_means_final$centers
+```
+
+Cluster Profiles:
+
+1. These customers buy somewhat frequently, however haven't in some time. It may be worth to send them a contact to see if they are worth following up on.
+2. Our best customers - They a lot, frequently and have done so recently. Keep these guys happy!
+3. They buy a relatively large amount, in frequently and have done so recently. No real need to send them any incentives, as they are unlikely to buy right away. 
+4. These are our 2nd best customers, They buy a lot, and frequently. It may be worth exploring incentives to see if you can convert them to the ranks of best customers. 
+5. These are in the range of our 2nd best customers. They buy a lot and frequently, but haven't bought in a while. It may be that they are moving away from our services. It would be worth while to touch base with these customers so that we can try and salvage them as customers. 
+6. These are new customers. Ones who have bought recently but only a small amount and most likely for the first time. Targeted marketing may be worth while to help convert them to regular customers. 
+7. These are dead customers. They don't buy much, and haven't done recently. We should move on from any marketing to these customers, as they are unlikely to be valuable to us. 
+
+Let's add our cluster designations back into our original data, so that we can see which customer fits into which cluster. 
+
+```{r}
+customer_clusters <- augment(k_means_final, rfm_table$rfm) %>% 
+  select(customer_id, .cluster)
+
+sales_clustered <- sales_rfm %>% 
+  left_join(customer_clusters, by = "customer_id")
+head(sales_clustered) %>%
+  knitr::kable()
+```
+
+Now we can identify which customer belongs to which cluster. We can now identify which customers can use some marketing and which we can stop focusing on. For instance, customer 12346 is in cluster 7 and is a dead customer. If we are marketing towards them, we could allocate those dollars to other customers and see a larger return. Let's identify our a few of our "new" customers. This would equate to cluster 6. 
+
+```{r}
+sales_clustered %>% 
+  filter(.cluster == 6) %>% 
+  head(15) %>% 
+  knitr::kable()
+```
+
+As we can see, these customers have very few purchases and a relatively low total order value. But they also have bought recently. We can try some marketing towards these customers in order to convert them to a more valuable customer! Let's take a look at our "faltering customers" in cluster 5. 
+
+```{r}
+sales_clustered %>% 
+  filter(.cluster == 5) %>% 
+  head(15) %>% 
+  knitr::kable()
+```
+
+We can see a stark difference between cluster 5 and 6. As we identified in our cluster portfolios, cluster 6 was our "new customers" and cluster 5 is our "almost 2nd best" customer. They are customers are who used to buy lots and frequently, how ever haven't done so in a while. We can see this manifested when we view some of the customers who fall in this cluster. Customer 12352 has 11 separate transactions, however hasn't bough in 59 days. Customer 12409 has 7 different transactions but hasn't bought in 101 days! These customers are worth touching base with to see if we can re-ignite purchasing. 
+
+# Wrap Up
+
+We've run a combination of recency frequency monetary analysis and K-Means algorithms on our sales data. What we've worked out is a profile of our customers. We can use these profiles to better utilize our marketing efforts. For instance, if we identify a customer as one in cluster 7 of our profile, we would want to reduce or all out stop marketing towards them. More likely than not, that customer is dead weight. However if we identify a customer as being in cluster 5, we may want to touch base with them. These customers were once very good, however they have stop buying for one reason or another. We will, at least, want to monitor these customers in case they slip to a lower quality customer. 
+
+
+
+
+
+
+
+
+
+
+
+
+

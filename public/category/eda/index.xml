@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>EDA | Brett C. Moxham</title>
+    <link>/category/eda/</link>
+      <atom:link href="/category/eda/index.xml" rel="self" type="application/rss+xml" />
+    <description>EDA</description>
+    <generator>Source Themes Academic (https://sourcethemes.com/academic/)</generator><language>en-us</language><lastBuildDate>Fri, 16 Oct 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>EDA</title>
+      <link>/category/eda/</link>
+    </image>
+    
+    <item>
+      <title>Customer Analysis Part 2</title>
+      <link>/post/customer-analysis-part-2/</link>
+      <pubDate>Fri, 16 Oct 2020 00:00:00 +0000</pubDate>
+      <guid>/post/customer-analysis-part-2/</guid>
+      <description>
+
+&lt;div id=&#34;TOC&#34;&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#part-1&#34;&gt;Part 1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#libaries-and-data&#34;&gt;Libaries and Data&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#rfm-analysis&#34;&gt;RFM Analysis&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#clustering&#34;&gt;Clustering&lt;/a&gt;&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#set-up&#34;&gt;Set Up&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#final-model&#34;&gt;Final Model&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#cluster-profiles&#34;&gt;Cluster Profiles&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+
+&lt;div id=&#34;part-1&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Part 1&lt;/h1&gt;
+&lt;p&gt;This is a continuation of a previous post. If you haven’t already, give it a read &lt;a href=&#34;https://brettmoxham.netlify.app/post/customer-analysis-eda/&#34;&gt;here&lt;/a&gt;. We take an exploratory data analysis approach with a data set from a retailer/wholesaler from the UK. In that post we looked at dollar drivers, unit drivers and where sales were originating from. This will examine clusters of customers, trying to identify which customers are similar.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;libaries-and-data&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Libaries and Data&lt;/h1&gt;
+&lt;p&gt;Let’s load in our data and our libraries. We can find our &lt;code&gt;sales&lt;/code&gt; csv in my &lt;a href=&#34;https://github.com/BrettMoxham/Random-Projects/blob/master/Consumer%20Data%20-%20EDA/sales.csv&#34;&gt;github&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(rfm)
+
+sales &amp;lt;- read_csv(&amp;quot;https://raw.githubusercontent.com/BrettMoxham/Random-Projects/master/Consumer%20Data%20-%20EDA/sales.csv&amp;quot;)&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div id=&#34;rfm-analysis&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;RFM Analysis&lt;/h1&gt;
+&lt;p&gt;RFM analysis, is a great way to compare and contrast customers. RFM stands for &lt;strong&gt;Recency Frequency Monetary&lt;/strong&gt;. We want to see how recently a customer has purchased from us, how often they do so, and how much they spend. Those 3 metrics can then be used to cluster our customers together into groups. We can then extrapolate the groupings into a customer profile, and we can use these customer profiles to help group other customers into those profiles as well. These profiles can be used with things such as target marketing, so that we can tailor our marketing approach to each individual customer. Let’s run some RFM analysis on our sales data. However, we still need to clean our data even further. We are going to use the &lt;code&gt;rfm&lt;/code&gt; package for our analysis. We need:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The number of orders per customer&lt;/li&gt;
+&lt;li&gt;Number of days since last transaction&lt;/li&gt;
+&lt;li&gt;Date of the analysis (for this we will use January 1st 2012, as this data covers 2010/2011)&lt;/li&gt;
+&lt;li&gt;Total revenue by customer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;sales_rfm &amp;lt;- sales %&amp;gt;% 
+  group_by(customer_id) %&amp;gt;% 
+  summarise(
+    num_trans = n_distinct(invoice_no),
+    num_days = as.Date(&amp;quot;2012/01/01&amp;quot;) - max(date),
+    total_revenue = sum(item_value)
+            ) %&amp;gt;% 
+  ungroup() %&amp;gt;% 
+  filter(!is.na(customer_id))
+
+rfm_table &amp;lt;- rfm_table_customer(sales_rfm, 
+                   customer_id = &amp;quot;customer_id&amp;quot;,
+                   n_transactions = &amp;quot;num_trans&amp;quot;,
+                   recency_days = &amp;quot;num_days&amp;quot;,
+                   total_revenue = &amp;quot;total_revenue&amp;quot;,
+                   analysis_date = as.Date(&amp;quot;2012/01/01&amp;quot;)
+                   )
+knitr::kable(head(rfm_table$rfm))&lt;/code&gt;&lt;/pre&gt;
+&lt;table style=&#34;width:100%;&#34;&gt;
+&lt;colgroup&gt;
+&lt;col width=&#34;11%&#34; /&gt;
+&lt;col width=&#34;12%&#34; /&gt;
+&lt;col width=&#34;16%&#34; /&gt;
+&lt;col width=&#34;7%&#34; /&gt;
+&lt;col width=&#34;13%&#34; /&gt;
+&lt;col width=&#34;15%&#34; /&gt;
+&lt;col width=&#34;14%&#34; /&gt;
+&lt;col width=&#34;9%&#34; /&gt;
+&lt;/colgroup&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;customer_id&lt;/th&gt;
+&lt;th align=&#34;left&#34;&gt;recency_days&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;transaction_count&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;amount&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;recency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;frequency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;monetary_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;rfm_score&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12346&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;348 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;0.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;121&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12347&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;25 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;7&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4310.00&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;545&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12348&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;98 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1797.24&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;234&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12349&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;41 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1757.55&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;414&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12350&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;333 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;334.40&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;112&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;12352&lt;/td&gt;
+&lt;td align=&#34;left&#34;&gt;59 days&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;11&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1545.41&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;354&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;We now have a table outlining our RFM data. Each customer is graded on a 1 - 5 scale, with 1 being least valuable and 5 being most. A customer who ranks as a 5,5,5 is our most valuable customer. They spend the most, are buying the most frequently and have bought recently. On the other side, a 1,1,1 customer is not valuable at all, and we should not waste time pursuing them for future sales. They buy small amounts infrequently and haven’t bought recently at all.&lt;/p&gt;
+&lt;p&gt;Let’s visualize our data here firstly.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rfm_fm_plot(rfm_table)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-3-1.png&#34; width=&#34;672&#34; /&gt;
+Our customers are clustered quite close together for the majority of customers. However we see a few who either spend quite a bit more than others, or who are sending in invoices quite often.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;clustering&#34; class=&#34;section level1&#34;&gt;
+&lt;h1&gt;Clustering&lt;/h1&gt;
+&lt;p&gt;We can use the K-Means algorithm to group our customers. K means is an unsupervised algorithm that takes &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; random centroids (these &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; points are in our data points already, and chosen at random). The centroids then define a cluster where in the remaining data points are assigned to their nearest centroid (1 and only 1 centroid) by euclidean distance. The centroids are then shifted such that the total euclidean distance is reduced for each cluster (some data points may change clusters in this shifting). This process repeats until there is no shift in centroids that will reduce the euclidean distance of their clusters anymore. The final shift will produce the final centroids and in turn the final clusters for the data.&lt;/p&gt;
+&lt;div id=&#34;set-up&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Set Up&lt;/h2&gt;
+&lt;p&gt;Firstly, we need to get our rfm scores only. Our current &lt;code&gt;rfm_table&lt;/code&gt; has a bunch of extra data that we won’t use in our K-means algorithim.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;rfm_scores &amp;lt;- rfm_table$rfm[,(5:7)]
+
+knitr::kable(head(rfm_scores))&lt;/code&gt;&lt;/pre&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr class=&#34;header&#34;&gt;
+&lt;th align=&#34;right&#34;&gt;recency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;frequency_score&lt;/th&gt;
+&lt;th align=&#34;right&#34;&gt;monetary_score&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;odd&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;1&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;2&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr class=&#34;even&#34;&gt;
+&lt;td align=&#34;right&#34;&gt;3&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;5&lt;/td&gt;
+&lt;td align=&#34;right&#34;&gt;4&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;Now we a data set with only our recency, frequency and monetary scores. Each is still representative of our customers, but we no longer need the &lt;code&gt;customer_id&lt;/code&gt; value as we are only trying to get a sense of what each customer is. We can now run our K-means algorithm. Let’s arbitrarily use a &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; value equal to 5. This will create 5 clusters.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k_means_basic &amp;lt;- kmeans(rfm_scores, centers = 5)
+k_means_basic&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;## K-means clustering with 5 clusters of sizes 1178, 804, 613, 1104, 673
+## 
+## Cluster means:
+##   recency_score frequency_score monetary_score
+## 1      1.636672        1.204584       1.453311
+## 2      2.189055        2.206468       2.881841
+## 3      2.445351        3.887439       4.238173
+## 4      4.584239        4.379529       4.523551
+## 5      4.365527        2.037147       2.210996
+## 
+## Clustering vector:
+##    [1] 1 4 3 5 1 3 1 2 1 4 2 5 4 3 1 4 2 4 2 5 3 2 3 1 5 5 2 2 2 4 4 3 5 1 4 2 5
+##   [38] 3 2 4 3 2 3 1 1 2 2 4 3 3 3 2 3 3 2 4 4 2 2 4 2 4 2 2 1 4 4 4 1 3 3 4 2 3
+##   [75] 2 4 4 1 5 4 5 2 1 1 4 1 4 5 2 1 3 3 3 2 2 4 3 4 5 2 4 4 4 4 2 4 4 5 5 4 4
+##  [112] 4 3 4 1 4 1 2 2 4 2 5 4 2 3 1 5 1 1 3 5 1 2 1 2 2 1 2 4 4 1 3 2 1 4 4 4 2
+##  [149] 4 3 5 5 2 2 4 5 4 4 4 5 2 3 1 1 2 1 2 4 2 4 5 2 4 1 4 1 1 2 4 4 2 4 1 1 3
+##  [186] 2 4 2 1 1 2 4 4 3 5 5 1 5 3 1 2 2 3 2 4 4 4 4 3 1 5 2 1 1 3 4 2 2 4 1 4 3
+##  [223] 5 5 4 4 4 1 1 2 3 4 4 5 5 2 3 2 3 2 1 4 1 4 3 2 3 5 4 1 2 5 1 2 3 4 4 4 5
+##  [260] 5 5 4 4 1 1 2 4 3 4 1 5 4 4 3 3 5 4 4 4 4 4 1 2 5 1 4 3 2 5 4 4 2 5 2 4 4
+##  [297] 1 4 4 3 4 5 4 1 5 3 1 5 4 4 3 4 4 1 4 4 2 1 4 1 1 1 2 1 1 2 1 2 3 4 4 4 1
+##  [334] 2 4 3 3 1 4 3 3 5 2 2 4 2 2 2 4 4 4 4 4 4 5 5 5 1 1 1 1 2 2 5 1 4 1 2 2 2
+##  [371] 1 1 2 2 1 2 4 1 3 3 1 4 5 4 2 3 1 2 1 1 3 1 2 4 3 4 2 3 5 2 5 5 1 1 3 3 1
+##  [408] 4 2 2 1 4 1 4 3 1 2 2 1 2 3 4 5 2 1 5 5 1 3 3 2 5 2 5 2 1 4 1 5 4 2 3 4 4
+##  [445] 4 2 3 2 4 5 4 1 1 3 5 3 1 2 4 5 4 4 4 5 3 2 2 1 2 1 3 4 4 4 4 4 5 4 1 4 5
+##  [482] 4 2 5 4 1 5 4 1 1 1 3 5 1 5 4 2 1 4 5 5 5 4 1 4 2 2 4 1 1 4 2 1 1 1 4 4 4
+##  [519] 3 2 5 4 4 2 4 3 5 4 5 3 1 2 2 2 2 5 2 1 1 5 4 4 2 4 1 3 5 1 1 1 1 4 1 5 1
+##  [556] 5 4 1 1 2 5 4 5 1 4 3 5 2 4 4 5 2 3 4 1 3 4 1 1 4 1 4 1 3 1 4 4 4 4 2 4 4
+##  [593] 1 1 2 3 4 1 1 4 1 1 3 2 3 4 4 4 2 3 5 1 3 5 5 4 4 2 5 1 3 3 3 4 5 1 3 2 1
+##  [630] 5 3 2 5 5 5 4 2 1 4 1 4 4 1 3 1 5 5 2 1 1 4 4 4 5 5 5 3 4 1 4 5 3 1 2 1 2
+##  [667] 2 1 3 4 1 1 1 1 4 4 2 1 5 4 1 2 2 1 1 1 4 5 2 2 2 5 5 5 1 2 2 1 4 3 4 4 4
+##  [704] 4 1 1 5 1 2 5 2 1 2 4 1 1 4 1 2 2 1 1 4 5 1 2 2 1 1 4 1 4 4 4 5 4 5 3 3 5
+##  [741] 4 3 2 5 4 3 2 3 2 5 3 5 3 2 2 1 3 1 2 3 1 1 1 5 4 1 5 2 2 2 1 1 2 4 5 1 4
+##  [778] 1 2 1 2 1 3 2 3 5 4 1 4 1 2 5 2 1 4 1 4 3 1 2 5 5 2 4 4 1 3 2 5 4 1 1 3 3
+##  [815] 3 4 5 5 4 5 2 2 4 5 4 1 1 4 4 5 4 4 2 2 4 4 4 5 3 1 2 2 5 4 1 4 2 1 3 3 3
+##  [852] 2 3 1 1 1 1 3 2 4 2 3 3 2 1 4 5 2 4 4 2 5 1 1 3 2 4 1 4 4 1 1 1 2 4 3 2 1
+##  [889] 3 4 5 3 3 5 3 2 2 1 2 4 4 3 2 2 5 2 4 1 3 3 5 5 5 1 3 2 3 5 2 1 5 1 4 2 2
+##  [926] 4 4 4 5 1 2 1 5 4 5 4 3 2 3 1 5 1 4 1 2 1 5 5 2 4 3 4 1 2 1 1 4 1 3 4 4 3
+##  [963] 4 3 2 3 2 5 2 1 5 4 1 4 1 4 1 3 3 2 2 5 4 3 3 1 5 1 4 1 1 2 5 2 1 4 5 1 1
+## [1000] 4 1 2 1 4 1 4 4 1 1 4 1 4 5 1 2 1 4 5 1 1 3 1 3 1 4 2 2 3 1 3 2 5 3 2 2 5
+## [1037] 4 5 1 5 1 2 4 4 2 2 1 3 3 1 3 1 2 4 4 4 2 2 2 1 3 3 4 4 3 3 1 4 1 5 1 4 4
+## [1074] 1 2 5 3 1 4 2 1 1 3 1 4 2 1 1 4 1 5 2 2 3 3 4 5 5 3 2 5 5 3 1 2 5 1 4 5 1
+## [1111] 5 1 5 1 3 5 1 5 3 2 2 3 5 4 2 1 1 4 4 1 2 1 4 4 3 4 4 2 1 3 1 1 2 4 4 4 4
+## [1148] 4 2 1 1 2 1 4 5 1 4 4 1 1 5 2 3 2 3 3 5 2 2 2 1 1 4 3 5 1 5 2 2 3 1 2 2 2
+## [1185] 1 1 5 5 4 2 1 1 4 4 2 3 4 5 2 4 1 2 5 5 2 1 4 4 1 1 1 4 1 5 2 1 3 4 4 4 5
+## [1222] 4 2 1 4 5 3 4 4 4 2 3 2 3 4 3 2 1 2 2 2 3 3 5 2 1 5 2 1 2 4 4 4 5 4 1 1 3
+## [1259] 1 3 1 5 3 1 4 1 4 5 4 5 2 1 2 4 4 1 4 4 4 1 2 1 4 5 4 1 3 3 1 1 2 1 4 4 5
+## [1296] 4 1 1 4 5 4 1 4 1 3 4 1 2 3 5 5 4 4 4 4 1 4 1 1 4 1 4 5 2 2 4 1 4 3 4 5 1
+## [1333] 4 4 1 1 3 4 2 1 2 2 2 2 1 4 5 2 4 3 2 3 2 1 2 1 5 1 3 3 3 4 2 4 1 1 4 4 4
+## [1370] 2 4 3 1 4 1 3 5 5 1 1 4 3 3 2 1 4 4 4 4 1 5 2 3 2 3 3 4 4 3 3 4 3 5 4 2 1
+## [1407] 1 3 5 1 1 4 3 3 1 1 4 4 3 3 4 1 2 4 2 2 3 1 1 2 2 3 4 1 4 5 4 4 5 1 4 4 4
+## [1444] 4 4 1 4 4 4 5 2 1 3 3 3 4 1 3 1 4 2 2 4 2 1 1 4 2 5 2 4 5 4 2 2 1 3 4 3 1
+## [1481] 2 1 5 1 1 3 1 5 1 2 1 4 4 5 3 4 1 1 1 1 2 2 1 5 3 5 1 3 4 4 4 1 4 2 4 2 4
+## [1518] 3 3 1 3 4 3 4 2 2 1 3 4 5 4 4 2 2 4 1 5 4 2 4 1 4 4 1 1 1 2 4 4 4 3 4 4 5
+## [1555] 5 2 2 5 1 4 1 2 2 3 3 2 3 4 5 5 3 1 2 3 1 4 1 5 2 4 1 1 1 4 2 1 2 4 5 1 2
+## [1592] 1 3 5 2 5 4 4 2 4 4 4 5 4 1 2 3 4 2 1 5 4 1 4 4 4 1 2 4 3 4 4 3 1 1 2 5 4
+## [1629] 3 1 4 4 4 4 2 1 5 5 1 4 4 2 1 4 3 4 3 2 3 5 1 4 3 1 5 5 5 1 4 3 1 1 4 1 4
+## [1666] 2 5 5 4 5 1 1 5 1 4 4 4 2 2 5 1 2 4 1 3 1 3 4 1 2 4 3 1 1 2 1 3 4 5 1 2 5
+## [1703] 2 4 1 4 2 1 4 4 2 4 5 4 2 5 5 5 3 5 4 3 1 2 4 5 4 1 4 2 1 4 2 4 1 2 4 3 1
+## [1740] 4 1 4 1 3 4 4 5 4 1 4 4 5 4 4 4 5 5 2 4 5 1 4 5 1 1 4 2 4 4 4 4 3 4 3 4 4
+## [1777] 3 1 4 1 2 2 4 5 1 3 4 1 2 1 2 5 4 5 4 2 1 3 3 5 2 2 2 1 5 5 5 5 5 1 5 4 1
+## [1814] 4 5 1 3 1 2 5 5 1 3 3 1 2 1 2 2 2 5 1 2 4 4 3 4 1 4 5 3 1 3 3 3 1 4 1 5 3
+## [1851] 5 3 2 3 3 4 5 1 5 5 5 4 2 4 5 1 5 1 4 4 2 5 5 4 2 1 2 1 1 1 2 5 2 4 2 4 4
+## [1888] 4 5 4 5 2 4 1 5 4 5 3 2 3 2 2 5 2 1 1 3 4 1 3 2 4 3 4 5 2 4 5 1 3 5 5 1 2
+## [1925] 3 5 4 1 4 1 2 5 1 5 3 3 1 3 1 1 3 3 1 5 1 5 1 1 2 2 2 3 2 4 2 1 4 1 2 2 1
+## [1962] 1 2 1 4 5 4 4 1 2 4 5 2 5 3 4 4 1 2 3 4 1 1 5 4 2 4 1 2 1 4 4 1 5 5 2 4 3
+## [1999] 5 4 3 1 3 5 3 2 2 1 2 5 2 2 2 4 3 4 1 1 4 4 1 2 1 4 3 1 5 3 1 3 5 5 3 4 4
+## [2036] 3 3 1 4 4 4 4 5 4 4 1 1 2 2 3 4 5 4 1 3 3 1 4 3 4 1 4 1 3 2 1 4 4 3 2 5 2
+## [2073] 4 4 5 2 4 4 1 4 1 5 2 1 1 5 2 4 1 1 1 4 1 3 2 5 1 5 4 4 3 2 4 5 4 1 3 3 4
+## [2110] 1 2 5 4 1 2 1 2 4 3 1 4 1 3 1 1 2 2 1 1 3 3 1 2 1 3 1 4 4 5 3 3 1 2 3 2 1
+## [2147] 4 4 2 4 1 2 1 1 2 3 1 1 1 1 2 1 4 5 4 4 2 5 5 1 1 1 1 3 1 5 3 4 4 4 1 3 5
+## [2184] 4 3 2 3 1 3 3 1 1 4 3 1 1 2 1 5 1 1 3 2 1 1 1 3 2 3 2 2 1 2 2 2 1 4 2 1 1
+## [2221] 1 2 1 4 2 5 4 4 1 1 1 2 4 2 3 5 1 3 2 4 1 3 3 4 2 4 2 1 1 1 2 4 5 4 1 1 1
+## [2258] 4 5 3 2 1 5 3 1 3 4 1 5 1 3 2 5 3 1 1 1 4 3 5 5 5 2 4 5 4 1 1 2 1 4 5 1 1
+## [2295] 1 4 5 5 4 1 2 1 5 1 1 5 2 4 1 5 2 2 5 1 4 1 2 2 4 1 4 4 1 4 3 5 3 5 4 4 4
+## [2332] 4 1 1 3 4 2 3 1 4 1 4 4 5 1 3 5 3 2 1 5 5 1 4 1 4 4 4 4 4 2 1 5 5 1 1 4 2
+## [2369] 4 3 5 1 1 1 1 4 5 5 4 1 4 1 5 5 3 4 5 4 5 2 2 2 1 2 3 5 4 1 3 2 1 1 1 4 3
+## [2406] 5 2 5 4 4 1 1 3 3 1 4 1 1 4 1 4 3 5 3 4 4 1 2 3 2 4 3 4 5 2 1 1 1 4 3 3 2
+## [2443] 5 2 2 2 2 1 2 5 2 2 5 3 1 4 1 1 2 3 1 1 3 1 4 3 3 2 4 2 1 5 4 4 1 4 2 5 1
+## [2480] 5 4 1 3 5 2 4 1 3 1 3 3 3 1 4 2 5 3 1 3 5 5 3 1 1 5 4 1 1 3 1 1 2 4 4 1 1
+## [2517] 5 1 4 1 4 1 3 4 3 1 2 4 2 2 5 2 2 4 3 1 2 4 5 1 1 1 3 2 5 4 5 4 3 4 1 5 3
+## [2554] 4 2 4 3 2 2 3 1 1 4 4 2 2 3 2 3 4 3 2 4 3 3 1 2 5 1 2 3 3 2 5 2 1 3 3 1 1
+## [2591] 4 4 2 3 1 1 4 2 5 1 1 4 3 4 5 4 3 4 5 5 4 2 1 4 1 1 5 3 5 1 3 3 5 2 1 1 2
+## [2628] 1 1 1 1 4 1 5 5 4 5 4 4 1 4 2 4 1 1 5 1 1 1 1 1 1 4 4 1 1 2 3 1 1 1 1 2 5
+## [2665] 5 4 5 2 4 4 5 1 5 5 5 5 1 4 1 3 1 2 5 2 3 4 4 4 3 5 4 5 2 5 4 1 3 3 4 4 5
+## [2702] 1 3 5 4 2 4 3 4 2 5 4 1 2 4 5 1 2 5 5 1 3 3 1 2 4 2 2 2 5 3 4 4 2 3 2 3 1
+## [2739] 1 2 2 1 2 4 3 1 4 1 1 4 5 1 1 1 4 1 4 1 3 2 1 4 3 2 3 1 4 1 1 3 2 4 3 4 1
+## [2776] 1 1 4 2 2 3 1 1 1 4 2 1 5 3 2 2 1 1 1 4 2 4 3 4 5 1 2 1 5 2 2 1 4 1 4 2 1
+## [2813] 1 5 3 2 3 4 5 1 3 4 1 2 5 4 4 3 1 3 4 3 3 1 1 1 3 1 3 1 3 5 4 4 3 5 1 4 1
+## [2850] 1 5 4 1 3 5 5 2 5 2 3 4 2 5 1 3 1 2 2 4 2 1 3 3 2 1 2 2 3 2 3 1 2 4 4 4 2
+## [2887] 2 4 1 1 3 1 1 4 4 2 1 3 2 5 1 4 3 2 2 4 1 1 1 2 5 4 2 1 4 5 1 2 4 4 2 5 1
+## [2924] 4 1 3 3 2 5 5 1 3 3 1 1 2 2 5 1 2 3 4 4 5 4 4 1 1 1 2 4 2 5 1 2 5 3 1 4 1
+## [2961] 5 4 2 1 2 4 4 4 5 3 1 5 4 5 2 5 4 3 2 2 4 1 2 4 2 2 2 2 5 1 3 1 4 3 3 3 5
+## [2998] 1 4 1 1 1 1 5 4 3 5 1 1 5 1 4 2 3 4 5 1 1 4 1 1 1 1 2 1 5 4 4 4 2 5 3 1 5
+## [3035] 1 1 2 1 1 5 3 3 1 4 5 1 5 4 4 3 1 5 3 1 2 4 2 3 5 5 2 5 1 2 1 2 2 3 1 5 4
+## [3072] 3 1 2 5 3 5 5 5 1 1 4 5 3 5 1 2 5 3 4 4 1 1 5 1 4 4 4 5 2 4 1 1 1 4 3 3 1
+## [3109] 3 4 2 3 5 4 5 5 2 1 4 2 5 4 4 3 2 1 1 1 1 1 2 1 1 2 1 4 2 1 1 5 5 1 4 1 5
+## [3146] 2 4 4 1 1 3 2 1 5 1 4 1 5 2 1 2 1 4 1 4 2 4 1 3 4 4 1 5 1 2 1 2 2 3 4 3 4
+## [3183] 4 4 1 1 4 1 5 2 5 4 4 4 4 2 3 4 1 1 3 4 4 2 3 4 2 5 2 2 2 1 2 4 4 4 2 2 3
+## [3220] 4 4 4 4 3 1 2 4 1 4 5 1 4 2 3 4 1 3 3 2 5 2 3 1 1 2 1 4 4 3 4 5 4 3 5 1 1
+## [3257] 2 3 1 1 1 5 1 4 2 4 1 2 4 2 1 3 3 1 3 4 1 1 2 4 2 1 4 5 2 5 4 4 1 1 4 1 1
+## [3294] 5 3 1 5 2 2 3 2 4 1 5 1 4 4 2 4 4 2 1 5 2 1 1 1 1 1 4 1 1 2 4 2 4 3 3 3 1
+## [3331] 1 1 1 1 5 5 5 5 1 3 5 5 1 4 4 2 4 3 4 5 4 1 2 1 2 5 1 3 4 4 1 1 1 5 4 5 2
+## [3368] 5 4 4 2 4 2 4 4 1 1 4 5 1 3 3 1 4 5 1 2 3 4 5 4 1 4 2 5 4 3 4 2 4 1 2 4 3
+## [3405] 3 1 5 4 3 5 1 1 2 1 1 1 4 1 5 2 5 1 1 4 2 1 4 3 4 5 4 5 4 1 4 1 4 2 2 5 4
+## [3442] 3 2 5 3 5 5 5 4 4 2 4 5 5 2 1 3 2 1 5 3 5 2 2 5 1 4 4 3 5 2 2 3 3 4 3 1 5
+## [3479] 2 4 3 4 1 3 3 4 2 1 4 4 1 4 4 4 2 2 1 5 5 3 3 3 3 4 4 4 4 3 1 4 4 4 5 4 1
+## [3516] 2 3 4 1 1 4 4 1 1 5 1 1 1 1 1 3 1 4 4 2 4 1 4 1 1 5 2 4 1 3 5 1 5 5 3 4 4
+## [3553] 4 5 3 1 5 2 1 2 4 1 3 1 2 3 2 4 1 1 4 2 2 4 3 1 5 5 1 3 3 1 1 4 1 3 3 1 4
+## [3590] 5 4 5 1 1 1 4 4 2 3 4 5 1 1 5 4 5 4 1 2 4 2 1 5 1 5 1 2 5 5 2 2 2 3 1 2 5
+## [3627] 2 2 3 1 2 1 1 3 3 5 4 4 4 5 1 4 5 5 2 5 5 4 1 4 1 1 2 2 4 4 4 3 3 5 4 4 1
+## [3664] 5 5 1 2 2 3 4 2 4 2 1 1 5 4 1 4 1 4 2 2 2 1 5 1 5 5 2 1 4 4 1 4 2 5 3 2 2
+## [3701] 2 1 4 5 4 1 5 5 5 4 5 3 4 2 1 1 3 5 2 3 4 1 4 4 3 1 2 4 5 4 2 2 4 2 4 2 4
+## [3738] 2 5 4 1 4 2 2 1 5 1 4 5 1 2 4 1 3 1 2 1 4 4 4 5 2 1 1 3 5 2 3 5 2 4 1 5 5
+## [3775] 4 3 2 1 2 4 2 1 2 4 4 1 5 1 1 1 4 1 5 5 3 2 2 2 1 3 5 4 4 2 1 5 4 1 4 2 5
+## [3812] 4 5 1 1 4 3 4 4 2 1 1 1 5 5 5 1 2 1 1 5 2 1 3 2 4 5 1 5 3 5 4 5 5 4 1 3 5
+## [3849] 5 1 4 1 5 1 4 1 4 3 3 3 4 3 4 2 5 4 2 5 1 4 5 1 1 3 4 3 4 1 2 2 4 1 1 4 2
+## [3886] 5 4 1 4 2 5 4 3 5 5 1 2 2 1 4 3 1 3 2 5 4 4 4 1 4 3 5 4 1 4 5 5 3 5 3 1 4
+## [3923] 3 4 2 4 4 4 1 2 5 4 1 4 4 4 1 3 1 1 2 3 1 1 4 1 4 2 2 4 4 1 1 1 5 2 1 1 4
+## [3960] 1 3 4 3 3 3 4 5 4 4 3 1 2 2 4 5 5 4 4 2 4 1 1 2 4 1 4 4 4 5 5 2 1 2 2 5 4
+## [3997] 4 3 2 5 3 1 5 4 1 2 1 2 3 2 1 4 5 5 1 2 5 4 3 3 2 5 4 4 5 4 5 5 3 1 1 4 4
+## [4034] 1 5 1 1 5 1 3 4 1 4 1 1 2 3 2 3 5 1 1 4 4 4 1 1 4 1 3 5 4 2 4 2 4 1 3 3 1
+## [4071] 1 1 1 1 5 5 5 5 1 4 1 2 1 2 1 3 1 5 2 1 1 1 5 5 2 1 1 5 2 2 5 2 2 4 2 1 4
+## [4108] 1 2 1 4 3 2 4 2 1 5 4 1 3 1 5 1 1 1 4 2 3 4 2 1 1 2 1 4 1 5 3 3 1 1 1 1 1
+## [4145] 1 5 4 1 5 1 3 2 1 5 1 1 5 2 1 3 1 3 2 5 1 5 5 3 1 1 1 1 5 5 3 2 1 1 2 2 1
+## [4182] 5 1 1 5 2 2 2 5 4 1 5 4 1 1 1 2 4 1 5 5 4 2 2 4 1 1 1 4 1 1 3 1 4 4 1 3 5
+## [4219] 2 5 5 2 1 3 1 4 3 3 2 4 4 1 5 4 2 1 1 1 4 5 5 1 1 3 5 4 1 1 2 4 5 4 1 5 1
+## [4256] 4 2 4 2 1 4 1 3 2 4 4 1 1 2 2 2 5 2 5 5 1 2 4 5 1 4 3 1 3 3 4 3 5 1 4 3 4
+## [4293] 4 5 3 5 1 4 3 2 1 2 1 2 2 4 1 3 1 3 2 5 4 4 1 1 1 5 5 2 4 1 4 1 4 1 4 3 1
+## [4330] 2 4 4 3 3 1 3 4 4 3 1 4 3 4 5 2 5 1 2 2 1 1 3 4 3 2 1 4 2 1 1 2 4 5 5 5 1
+## [4367] 1 1 1 5 4 3
+## 
+## Within cluster sum of squares by cluster:
+## [1] 1388.1231 1268.7649  913.8793 1269.5308 1180.1902
+##  (between_SS / total_SS =  77.5 %)
+## 
+## Available components:
+## 
+## [1] &amp;quot;cluster&amp;quot;      &amp;quot;centers&amp;quot;      &amp;quot;totss&amp;quot;        &amp;quot;withinss&amp;quot;     &amp;quot;tot.withinss&amp;quot;
+## [6] &amp;quot;betweenss&amp;quot;    &amp;quot;size&amp;quot;         &amp;quot;iter&amp;quot;         &amp;quot;ifault&amp;quot;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We’ve run our K-means algorithm and assigned each customer to a cluster. We’ve arbitrarily chosen 5 as our number of clusters, however this may not be the best number to chose. We need a way to determine the best number of clusters. We can do this by using a function, and iterating over a vector of &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; values.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k &amp;lt;- as.vector(2:20)
+set.seed(123)
+
+kmeans_function &amp;lt;- function(k){
+  
+  cluster &amp;lt;- kmeans(rfm_scores, centers = k)
+  return(cluster$tot.withinss)
+}
+
+cluster_withinness &amp;lt;- sapply(k, kmeans_function)
+
+cluster_df &amp;lt;- data.frame(k, cluster_withinness)&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What we’ve done here is iterate through bunch of different &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; values and taken the sum of squares for each &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; value. We can graph our &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; values and our sum of squares to create an elbow plot. Where our elbow plot “bends” is our best fit value for &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt;.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;ggplot(cluster_df, aes(x = k, y = cluster_withinness)) +
+  geom_point()+
+  geom_line()+
+  labs(
+    title = &amp;quot;Which K Should We Use?&amp;quot;,
+    x = &amp;quot;K&amp;quot;,
+    y = &amp;quot;Sum of Squares&amp;quot;
+  )+
+  theme_light()&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&#34;/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-7-1.png&#34; width=&#34;672&#34; /&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;final-model&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Final Model&lt;/h2&gt;
+&lt;p&gt;It looks like this we have a elbow somewhere around 5 to 7. Let’s use 7 as our &lt;span class=&#34;math inline&#34;&gt;\(k\)&lt;/span&gt; value. We can now re-run our K-means algorithm to view our clusters and their centers.&lt;/p&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;set.seed(123)
+k_means_final &amp;lt;- kmeans(rfm_scores, centers = 7)
+
+k_means_final$centers&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These are our clusters, with their cluster center values. Looking at the values, it seems like cluster 2 represents our best customers. They buy a lot, frequently and have bought most recently. Cluster 1 represents our worst customers. They don’t buy a often, haven’t bought lots, and the last time they bought was a while ago. Examining the remaining clusters we can build a profile of our clusters. For instance looking at cluster 6. They are a customer who’ve bought something for the first time recently, but just a small amount. Let’s see if we can identify a profile for our clusters.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div id=&#34;cluster-profiles&#34; class=&#34;section level2&#34;&gt;
+&lt;h2&gt;Cluster Profiles&lt;/h2&gt;
+&lt;pre class=&#34;r&#34;&gt;&lt;code&gt;k_means_final$centers&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Cluster Profiles:&lt;/p&gt;
+&lt;ol style=&#34;list-style-type: decimal&#34;&gt;
+&lt;li&gt;These customers buy somewhat frequently, however haven’t in some time. It may be worth to send them a contact to see if they are worth following up on.&lt;/li&gt;
+&lt;li&gt;Our best customers - They a lot, frequently and have done so recently. Keep these guys happy!&lt;/li&gt;
+&lt;li&gt;They buy a relatively large amount, in frequently and have done so recently. No real need to send them any incentives, as they are unlikely to buy right away.&lt;/li&gt;
+&lt;li&gt;These are our 2nd best customers, They buy a lot, and frequently. It may be worth exploring incentives to see if you can convert them to the ranks of best customers.&lt;/li&gt;
+&lt;li&gt;These are in the range of our 2nd best customers. They buy a lot and frequently, but haven’t bought in a while. It may be that they are moving away from our services. It would be worth while to touch base with these customers so that we can try and salvage them as customers.&lt;/li&gt;
+&lt;li&gt;These are new customers. Ones who have bought recently but only a small amount and most likely for the first time. Targeted marketing may be worth while to help convert them to regular customers.&lt;/li&gt;
+&lt;li&gt;These are dead customers. They don’t buy much, and haven’t done recently. We should move on from any marketing to these customers, as they are unlikely to be valuable to us.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

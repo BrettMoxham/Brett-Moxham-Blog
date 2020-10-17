@@ -1,0 +1,611 @@
+---
+title: Customer Analysis Part 2
+author: Brett Moxham
+date: '2020-10-16'
+slug: customer-analysis-part-2
+categories:
+  - Modeling
+tags:
+  - R
+  - EDA
+  - Customer Analysis
+  - K-Means
+subtitle: ''
+summary: 'Analyzing Customers using K-Means Algo'
+authors: []
+lastmod: '2020-10-16T19:23:02-05:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+draft: false
+output:
+  blogdown::html_page:
+    toc: true
+    
+
+---
+
+
+<div id="TOC">
+<ul>
+<li><a href="#part-1">Part 1</a></li>
+<li><a href="#libaries-and-data">Libaries and Data</a></li>
+<li><a href="#rfm-analysis">RFM Analysis</a></li>
+<li><a href="#clustering">Clustering</a><ul>
+<li><a href="#set-up">Set Up</a></li>
+<li><a href="#final-model">Final Model</a></li>
+<li><a href="#cluster-profiles">Cluster Profiles</a></li>
+</ul></li>
+<li><a href="#wrap-up">Wrap Up</a></li>
+</ul>
+</div>
+
+<div id="part-1" class="section level1">
+<h1>Part 1</h1>
+<p>This is a continuation of a previous post. If you haven’t already, give it a read <a href="https://brettmoxham.netlify.app/post/customer-analysis-eda/">here</a>. We take an exploratory data analysis approach with a data set from a retailer/wholesaler from the UK. In that post we looked at dollar drivers, unit drivers and where sales were originating from. This will examine clusters of customers, trying to identify which customers are similar.</p>
+</div>
+<div id="libaries-and-data" class="section level1">
+<h1>Libaries and Data</h1>
+<p>Let’s load in our data and our libraries. We can find our <code>sales</code> csv in my <a href="https://github.com/BrettMoxham/Random-Projects/blob/master/Consumer%20Data%20-%20EDA/sales.csv">github</a>.</p>
+<pre class="r"><code>library(tidyverse)
+library(tidymodels)
+library(lubridate)
+library(rfm)
+
+sales &lt;- read_csv(&quot;https://raw.githubusercontent.com/BrettMoxham/Random-Projects/master/Consumer%20Data%20-%20EDA/sales.csv&quot;)</code></pre>
+</div>
+<div id="rfm-analysis" class="section level1">
+<h1>RFM Analysis</h1>
+<p>RFM analysis, is a great way to compare and contrast customers. RFM stands for <strong>Recency Frequency Monetary</strong>. We want to see how recently a customer has purchased from us, how often they do so, and how much they spend. Those 3 metrics can then be used to cluster our customers together into groups. We can then extrapolate the groupings into a customer profile, and we can use these customer profiles to help group other customers into those profiles as well. These profiles can be used with things such as target marketing, so that we can tailor our marketing approach to each individual customer. Let’s run some RFM analysis on our sales data. However, we still need to clean our data even further. We are going to use the <code>rfm</code> package for our analysis. We need:</p>
+<ul>
+<li>The number of orders per customer</li>
+<li>Number of days since last transaction</li>
+<li>Date of the analysis (for this we will use January 1st 2012, as this data covers 2010/2011)</li>
+<li>Total revenue by customer</li>
+</ul>
+<pre class="r"><code>sales_rfm &lt;- sales %&gt;% 
+  group_by(customer_id) %&gt;% 
+  summarise(
+    num_trans = n_distinct(invoice_no),
+    num_days = as.Date(&quot;2012/01/01&quot;) - max(date),
+    total_revenue = sum(item_value)
+            ) %&gt;% 
+  ungroup() %&gt;% 
+  filter(!is.na(customer_id))
+
+rfm_table &lt;- rfm_table_customer(sales_rfm, 
+                   customer_id = &quot;customer_id&quot;,
+                   n_transactions = &quot;num_trans&quot;,
+                   recency_days = &quot;num_days&quot;,
+                   total_revenue = &quot;total_revenue&quot;,
+                   analysis_date = as.Date(&quot;2012/01/01&quot;)
+                   )
+knitr::kable(head(rfm_table$rfm))</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="11%" />
+<col width="12%" />
+<col width="16%" />
+<col width="7%" />
+<col width="13%" />
+<col width="15%" />
+<col width="14%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">customer_id</th>
+<th align="left">recency_days</th>
+<th align="right">transaction_count</th>
+<th align="right">amount</th>
+<th align="right">recency_score</th>
+<th align="right">frequency_score</th>
+<th align="right">monetary_score</th>
+<th align="right">rfm_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">12346</td>
+<td align="left">348 days</td>
+<td align="right">2</td>
+<td align="right">0.00</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">121</td>
+</tr>
+<tr class="even">
+<td align="right">12347</td>
+<td align="left">25 days</td>
+<td align="right">7</td>
+<td align="right">4310.00</td>
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="right">5</td>
+<td align="right">545</td>
+</tr>
+<tr class="odd">
+<td align="right">12348</td>
+<td align="left">98 days</td>
+<td align="right">4</td>
+<td align="right">1797.24</td>
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">4</td>
+<td align="right">234</td>
+</tr>
+<tr class="even">
+<td align="right">12349</td>
+<td align="left">41 days</td>
+<td align="right">1</td>
+<td align="right">1757.55</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">4</td>
+<td align="right">414</td>
+</tr>
+<tr class="odd">
+<td align="right">12350</td>
+<td align="left">333 days</td>
+<td align="right">1</td>
+<td align="right">334.40</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">112</td>
+</tr>
+<tr class="even">
+<td align="right">12352</td>
+<td align="left">59 days</td>
+<td align="right">11</td>
+<td align="right">1545.41</td>
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="right">354</td>
+</tr>
+</tbody>
+</table>
+<p>We now have a table outlining our RFM data. Each customer is graded on a 1 - 5 scale, with 1 being least valuable and 5 being most. A customer who ranks as a 5,5,5 is our most valuable customer. They spend the most, are buying the most frequently and have bought recently. On the other side, a 1,1,1 customer is not valuable at all, and we should not waste time pursuing them for future sales. They buy small amounts infrequently and haven’t bought recently at all.</p>
+<p>Let’s visualize our data here firstly.</p>
+<pre class="r"><code>rfm_fm_plot(rfm_table)</code></pre>
+<p><img src="/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+Our customers are clustered quite close together for the majority of customers. However we see a few who either spend quite a bit more than others, or who are sending in invoices quite often.</p>
+</div>
+<div id="clustering" class="section level1">
+<h1>Clustering</h1>
+<p>We can use the K-Means algorithm to group our customers. K means is an unsupervised algorithm that takes <span class="math inline">\(k\)</span> random centroids (these <strong>k</strong> points are in our data points already, and chosen at random). The centroids then define a cluster where in the remaining data points are assigned to their nearest centroid (1 and only 1 centroid) by euclidean distance. The centroids are then shifted such that the total euclidean distance is reduced for each cluster (some data points may change clusters in this shifting). This process repeats until there is no shift in centroids that will reduce the euclidean distance of their clusters anymore. The final shift will produce the final centroids and in turn the final clusters for the data.</p>
+<div id="set-up" class="section level2">
+<h2>Set Up</h2>
+<p>Firstly, we need to get our rfm scores only. Our current <code>rfm_table</code> has a bunch of extra data that we won’t use in our K-means algorithm.</p>
+<pre class="r"><code>rfm_scores &lt;- rfm_table$rfm[,(5:7)]
+
+knitr::kable(head(rfm_scores))</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">recency_score</th>
+<th align="right">frequency_score</th>
+<th align="right">monetary_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">5</td>
+<td align="right">4</td>
+<td align="right">5</td>
+</tr>
+<tr class="odd">
+<td align="right">2</td>
+<td align="right">3</td>
+<td align="right">4</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">4</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+</tr>
+<tr class="even">
+<td align="right">3</td>
+<td align="right">5</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+<p>Now we a data set with only our recency, frequency and monetary scores. Each is still representative of our customers, but we no longer need the <code>customer_id</code> value as we are only trying to get a sense of what each customer is. We can now run our K-means algorithm. Let’s arbitrarily use a <strong>k</strong> value equal to 5. This will create 5 clusters.</p>
+<pre class="r"><code>k_means_basic &lt;- kmeans(rfm_scores, centers = 5)
+head(k_means_basic$cluster)</code></pre>
+<pre><code>## [1] 5 3 1 4 5 3</code></pre>
+<p>We’ve run our K-means algorithm and assigned each customer to a cluster. We’ve arbitrarily chosen 5 as our number of clusters, however this may not be the best number to chose. We need a way to determine the best number of clusters. We can do this by using a function, and iterating over a vector of <strong>k</strong> values.</p>
+<pre class="r"><code>k &lt;- as.vector(2:20)
+set.seed(123)
+
+kmeans_function &lt;- function(k){
+  
+  cluster &lt;- kmeans(rfm_scores, centers = k)
+  return(cluster$tot.withinss)
+}
+
+cluster_withinness &lt;- sapply(k, kmeans_function)
+
+cluster_df &lt;- data.frame(k, cluster_withinness)</code></pre>
+<p>What we’ve done here is iterate through bunch of different <strong>k</strong> values and taken the sum of squares for each <strong>k</strong> value. We can graph our <strong>k</strong> values and our sum of squares to create an elbow plot. Where our elbow plot “bends” is our best fit value for <strong>k</strong>.</p>
+<pre class="r"><code>ggplot(cluster_df, aes(x = k, y = cluster_withinness)) +
+  geom_point()+
+  geom_line()+
+  labs(
+    title = &quot;Which K Should We Use?&quot;,
+    x = &quot;K&quot;,
+    y = &quot;Sum of Squares&quot;
+  )+
+  theme_light()</code></pre>
+<p><img src="/post/2020-10-16-customer-analysis-part-2.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="final-model" class="section level2">
+<h2>Final Model</h2>
+<p>It looks like this we have a elbow somewhere around 5 to 7. Let’s use 7 as our <strong>k</strong> value. We can now re-run our K-means algorithm to view our clusters and their centers.</p>
+<pre class="r"><code>set.seed(123)
+k_means_final &lt;- kmeans(rfm_scores, centers = 7)
+
+k_means_final$centers</code></pre>
+<pre><code>##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992</code></pre>
+<p>These are our clusters, with their cluster center values. Looking at the values, it seems like cluster 2 represents our best customers. They buy a lot, frequently and have bought most recently. Cluster 1 represents our worst customers. They don’t buy a often, haven’t bought lots, and the last time they bought was a while ago. Examining the remaining clusters we can build a profile of our clusters. For instance looking at cluster 6. They are a customer who’ve bought something for the first time recently, but just a small amount. Let’s see if we can identify a profile for our clusters.</p>
+</div>
+<div id="cluster-profiles" class="section level2">
+<h2>Cluster Profiles</h2>
+<pre class="r"><code>k_means_final$centers</code></pre>
+<pre><code>##   recency_score frequency_score monetary_score
+## 1      4.471088        3.382653       3.700680
+## 2      2.348162        3.725338       4.214700
+## 3      1.473177        1.588721       2.698762
+## 4      4.503277        4.847969       4.874181
+## 5      4.385463        1.621145       1.894273
+## 6      2.736726        2.803097       2.550885
+## 7      1.846154        1.159587       1.216992</code></pre>
+<p>Cluster Profiles:</p>
+<ol style="list-style-type: decimal">
+<li>These customers buy somewhat frequently, however haven’t in some time. It may be worth to send them a contact to see if they are worth following up on.</li>
+<li>Our best customers - They a lot, frequently and have done so recently. Keep these guys happy!</li>
+<li>They buy a relatively large amount, in frequently and have done so recently. No real need to send them any incentives, as they are unlikely to buy right away.</li>
+<li>These are our 2nd best customers, They buy a lot, and frequently. It may be worth exploring incentives to see if you can convert them to the ranks of best customers.</li>
+<li>These are in the range of our 2nd best customers. They buy a lot and frequently, but haven’t bought in a while. It may be that they are moving away from our services. It would be worth while to touch base with these customers so that we can try and salvage them as customers.</li>
+<li>These are new customers. Ones who have bought recently but only a small amount and most likely for the first time. Targeted marketing may be worth while to help convert them to regular customers.</li>
+<li>These are dead customers. They don’t buy much, and haven’t done recently. We should move on from any marketing to these customers, as they are unlikely to be valuable to us.</li>
+</ol>
+<p>Let’s add our cluster designations back into our original data, so that we can see which customer fits into which cluster.</p>
+<pre class="r"><code>customer_clusters &lt;- augment(k_means_final, rfm_table$rfm) %&gt;% 
+  select(customer_id, .cluster)
+
+sales_clustered &lt;- sales_rfm %&gt;% 
+  left_join(customer_clusters, by = &quot;customer_id&quot;)
+head(sales_clustered) %&gt;%
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">customer_id</th>
+<th align="right">num_trans</th>
+<th align="left">num_days</th>
+<th align="right">total_revenue</th>
+<th align="left">.cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">12346</td>
+<td align="right">2</td>
+<td align="left">348 days</td>
+<td align="right">0.00</td>
+<td align="left">7</td>
+</tr>
+<tr class="even">
+<td align="right">12347</td>
+<td align="right">7</td>
+<td align="left">25 days</td>
+<td align="right">4310.00</td>
+<td align="left">4</td>
+</tr>
+<tr class="odd">
+<td align="right">12348</td>
+<td align="right">4</td>
+<td align="left">98 days</td>
+<td align="right">1797.24</td>
+<td align="left">2</td>
+</tr>
+<tr class="even">
+<td align="right">12349</td>
+<td align="right">1</td>
+<td align="left">41 days</td>
+<td align="right">1757.55</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12350</td>
+<td align="right">1</td>
+<td align="left">333 days</td>
+<td align="right">334.40</td>
+<td align="left">3</td>
+</tr>
+<tr class="even">
+<td align="right">12352</td>
+<td align="right">11</td>
+<td align="left">59 days</td>
+<td align="right">1545.41</td>
+<td align="left">2</td>
+</tr>
+</tbody>
+</table>
+<p>Now we can identify which customer belongs to which cluster. We can now identify which customers can use some marketing and which we can stop focusing on. For instance, customer 12346 is in cluster 7 and is a dead customer. If we are marketing towards them, we could allocate those dollars to other customers and see a larger return. Let’s identify our a few of our “new” customers. This would equate to cluster 6.</p>
+<pre class="r"><code>sales_clustered %&gt;% 
+  filter(.cluster == 6) %&gt;% 
+  head(15) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">customer_id</th>
+<th align="right">num_trans</th>
+<th align="left">num_days</th>
+<th align="right">total_revenue</th>
+<th align="left">.cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">12371</td>
+<td align="right">2</td>
+<td align="left">67 days</td>
+<td align="right">1887.96</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12379</td>
+<td align="right">3</td>
+<td align="left">104 days</td>
+<td align="right">850.29</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12394</td>
+<td align="right">2</td>
+<td align="left">86 days</td>
+<td align="right">1272.48</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12403</td>
+<td align="right">2</td>
+<td align="left">72 days</td>
+<td align="right">409.70</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12413</td>
+<td align="right">5</td>
+<td align="left">89 days</td>
+<td align="right">694.15</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12422</td>
+<td align="right">3</td>
+<td align="left">118 days</td>
+<td align="right">803.56</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12434</td>
+<td align="right">4</td>
+<td align="left">107 days</td>
+<td align="right">765.19</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12452</td>
+<td align="right">3</td>
+<td align="left">39 days</td>
+<td align="right">428.57</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12458</td>
+<td align="right">2</td>
+<td align="left">94 days</td>
+<td align="right">947.40</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12468</td>
+<td align="right">3</td>
+<td align="left">166 days</td>
+<td align="right">724.04</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12492</td>
+<td align="right">2</td>
+<td align="left">86 days</td>
+<td align="right">263.21</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12493</td>
+<td align="right">3</td>
+<td align="left">188 days</td>
+<td align="right">416.79</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12498</td>
+<td align="right">3</td>
+<td align="left">44 days</td>
+<td align="right">403.70</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="right">12527</td>
+<td align="right">3</td>
+<td align="left">104 days</td>
+<td align="right">348.71</td>
+<td align="left">6</td>
+</tr>
+<tr class="odd">
+<td align="right">12552</td>
+<td align="right">2</td>
+<td align="left">61 days</td>
+<td align="right">437.82</td>
+<td align="left">6</td>
+</tr>
+</tbody>
+</table>
+<p>As we can see, these customers have very few purchases and a relatively low total order value. But they also have bought recently. We can try some marketing towards these customers in order to convert them to a more valuable customer! Let’s take a look at our “faltering customers” in cluster 5.</p>
+<pre class="r"><code>sales_clustered %&gt;% 
+  filter(.cluster == 5) %&gt;% 
+  head(15) %&gt;% 
+  knitr::kable()</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">customer_id</th>
+<th align="right">num_trans</th>
+<th align="left">num_days</th>
+<th align="right">total_revenue</th>
+<th align="left">.cluster</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">12349</td>
+<td align="right">1</td>
+<td align="left">41 days</td>
+<td align="right">1757.55</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12367</td>
+<td align="right">1</td>
+<td align="left">27 days</td>
+<td align="right">168.90</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12374</td>
+<td align="right">1</td>
+<td align="left">48 days</td>
+<td align="right">742.93</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12375</td>
+<td align="right">3</td>
+<td align="left">25 days</td>
+<td align="right">455.42</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12391</td>
+<td align="right">1</td>
+<td align="left">44 days</td>
+<td align="right">460.89</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12442</td>
+<td align="right">1</td>
+<td align="left">26 days</td>
+<td align="right">172.06</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12445</td>
+<td align="right">1</td>
+<td align="left">45 days</td>
+<td align="right">133.40</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12478</td>
+<td align="right">1</td>
+<td align="left">26 days</td>
+<td align="right">680.99</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12504</td>
+<td align="right">4</td>
+<td align="left">41 days</td>
+<td align="right">114.00</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12508</td>
+<td align="right">2</td>
+<td align="left">49 days</td>
+<td align="right">398.27</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12531</td>
+<td align="right">1</td>
+<td align="left">37 days</td>
+<td align="right">125.22</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12532</td>
+<td align="right">1</td>
+<td align="left">53 days</td>
+<td align="right">349.83</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12538</td>
+<td align="right">1</td>
+<td align="left">52 days</td>
+<td align="right">363.95</td>
+<td align="left">5</td>
+</tr>
+<tr class="even">
+<td align="right">12544</td>
+<td align="right">2</td>
+<td align="left">52 days</td>
+<td align="right">355.70</td>
+<td align="left">5</td>
+</tr>
+<tr class="odd">
+<td align="right">12558</td>
+<td align="right">2</td>
+<td align="left">24 days</td>
+<td align="right">0.00</td>
+<td align="left">5</td>
+</tr>
+</tbody>
+</table>
+<p>We can see a stark difference between cluster 5 and 6. As we identified in our cluster portfolios, cluster 6 was our “new customers” and cluster 5 is our “almost 2nd best” customer. They are customers are who used to buy lots and frequently, how ever haven’t done so in a while. We can see this manifested when we view some of the customers who fall in this cluster. Customer 12352 has 11 separate transactions, however hasn’t bough in 59 days. Customer 12409 has 7 different transactions but hasn’t bought in 101 days! These customers are worth touching base with to see if we can re-ignite purchasing.</p>
+</div>
+</div>
+<div id="wrap-up" class="section level1">
+<h1>Wrap Up</h1>
+<p>We’ve run a combination of recency frequency monetary analysis and K-Means algorithms on our sales data. What we’ve worked out is a profile of our customers. We can use these profiles to better utilize our marketing efforts. For instance, if we identify a customer as one in cluster 7 of our profile, we would want to reduce or all out stop marketing towards them. More likely than not, that customer is dead weight. However if we identify a customer as being in cluster 5, we may want to touch base with them. These customers were once very good, however they have stop buying for one reason or another. We will, at least, want to monitor these customers in case they slip to a lower quality customer.</p>
+</div>
