@@ -18,18 +18,18 @@ subtitle = ""
   icon = "r-project"
   icon_pack = "fab"
   name = "R"
-  description = "Learning"
+  description = ""
 [[feature]]
   icon = "file-excel"
   icon_pack = "far"
   name = "Excel"
-  description ="Advanced"
+  description =""
   
 [[feature]]
   icon = "chart-line"
   icon_pack = "fas"
   name = "Visualization"
-  description = "Learning"  
+  description = ""  
   
 #[[feature]]
   #icon = "camera-retro"

@@ -17,19 +17,34 @@ date_format = "Jan 2006"
 #   Required fields are `title`, `company`, and `date_start`.
 #   Leave `date_end` empty if it's your current employer.
 #   Begin/end multi-line descriptions with 3 quotes `"""`.
+
+[[experience]]
+  title = "Inventory Analyst"
+  company = "Cabelas Canada"
+  company_url = ""
+  location = "Manitoba"
+  date_start ="2020-12-01"
+  date_end = ""
+  description = """
+  Responsibilities include:
+  
+  * Conduct analysis of historical sales and sell through in order to accurately forecast regular run sales and promotional and to reach goals such as sales targets, inventory turns and retail in-stocks.
+  *	Update and maintain open-to-buy based on sales plans, inventory strategies, forecasts and sell through.
+  """
+
 [[experience]]
   title = "Inventory Coordinator"
   company = "Cabelas Canada"
   company_url = ""
   location = "Manitoba"
   date_start = "2019-04-01"
-  date_end = ""
+  date_end = "2010-12-01"
   description = """
   Responsibilities include:
   
   * Analyzing historical data and sales trends to identify inventory risk and opportunities. 
   * Conduct analysis, through Excel, to generate recommendations on inventory levels across stores.
-  * Work alongside merchandise team to create and execute inventory plans at the product, category and item level to maximize business opportunites.
+  * Work alongside merchandise team to create and execute inventory plans at the product, category and item level to maximize business opportunities.
   """
   
 [[experience]]
@@ -43,7 +58,7 @@ date_format = "Jan 2006"
   Responsibilities include:
   
   * Researched, amalgamated and prepared reports to be presented to existing and prospective clients.
-  * Worked with business owners to review portfolios(insurance and investments) and recommend additional products to suppliment insurance protection or provide additional portfolio returns.
+  * Worked with business owners to review portfolios(insurance and investments) and recommend additional products to supplement insurance protection or provide additional portfolio returns.
   """
 
 +++

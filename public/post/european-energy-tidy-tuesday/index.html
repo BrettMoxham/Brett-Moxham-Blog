@@ -30,8 +30,7 @@
   
     
   
-  <meta name="description" content="Library and DataLet’s load in our data and libraries. Our data comes from the European Energy Tidy Tuesday data set.
-library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv&#39;)country_totals &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/country_totals.csv&#39;)Quick EDALet’s take a quick look at our data.">
+  <meta name="description" content="A look at data from Tidy Tuesday">
 
   
   <link rel="alternate" hreflang="en-us" href="/post/european-energy-tidy-tuesday/">
@@ -242,10 +241,9 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
   
   
     
-    
   
   
-  <meta property="twitter:card" content="summary">
+  <meta property="twitter:card" content="summary_large_image">
   
   <meta property="twitter:site" content="@bmoxO9">
   <meta property="twitter:creator" content="@bmoxO9">
@@ -253,9 +251,8 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
   <meta property="og:site_name" content="Brett C. Moxham">
   <meta property="og:url" content="/post/european-energy-tidy-tuesday/">
   <meta property="og:title" content="European Energy (Tidy Tuesday) | Brett C. Moxham">
-  <meta property="og:description" content="Library and DataLet’s load in our data and libraries. Our data comes from the European Energy Tidy Tuesday data set.
-library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv&#39;)country_totals &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/country_totals.csv&#39;)Quick EDALet’s take a quick look at our data."><meta property="og:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
-  <meta property="twitter:image" content="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  <meta property="og:description" content="A look at data from Tidy Tuesday"><meta property="og:image" content="/post/european-energy-tidy-tuesday/featured.JPG">
+  <meta property="twitter:image" content="/post/european-energy-tidy-tuesday/featured.JPG"><meta property="og:locale" content="en-us">
   
     
       <meta property="article:published_time" content="2020-08-09T00:00:00&#43;00:00">
@@ -288,6 +285,10 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
   },
   "headline": "European Energy (Tidy Tuesday)",
   
+  "image": [
+    "/post/european-energy-tidy-tuesday/featured.JPG"
+  ],
+  
   "datePublished": "2020-08-09T00:00:00Z",
   "dateModified": "2020-08-09T19:03:17-05:00",
   
@@ -304,7 +305,7 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
       "url": "/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
     }
   },
-  "description": "Library and Data\rLet’s load in our data and libraries. Our data comes from the European Energy Tidy Tuesday data set.\nlibrary(tidyverse)\renergy_types \u0026lt;- readr::read_csv(\u0026#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/energy_types.csv\u0026#39;)\rcountry_totals \u0026lt;- readr::read_csv(\u0026#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-08-04/country_totals.csv\u0026#39;)\r\rQuick EDA\rLet’s take a quick look at our data."
+  "description": "A look at data from Tidy Tuesday"
 }
 </script>
 
@@ -518,18 +519,26 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
 
 
 
-  
+
+
+
+
+
+
+
 
   
   
+    
   
+
+
 <div class="article-container pt-3">
   <h1>European Energy (Tidy Tuesday)</h1>
 
   
 
   
-    
 
 
 <div class="article-metadata">
@@ -566,27 +575,34 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
   
   <span class="middot-divider"></span>
   <span class="article-categories">
-    <i class="fas fa-folder mr-1"></i><a href="/category/tidy-tuesday/">Tidy Tuesday</a></span>
+    <i class="fas fa-folder mr-1"></i><a href="/category/r/">R</a></span>
   
 
 </div>
 
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+<div class="article-header article-container featured-image-wrapper mt-4 mb-4" style="max-width: 720px; max-height: 405px;">
+  <div style="position: relative">
+    <img src="/post/european-energy-tidy-tuesday/featured_hu0bf53c7d222ec4f5ac1d4c205c755052_329954_720x0_resize_q90_lanczos.JPG" alt="" class="featured-image">
+    
+  </div>
 </div>
 
 
@@ -595,6 +611,9 @@ library(tidyverse)energy_types &lt;- readr::read_csv(&#39;https://raw.githubuse
 
     <div class="article-style">
       
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+<link href="/rmarkdown-libs/anchor-sections/anchor-sections.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/anchor-sections/anchor-sections.js"></script>
 
 
 <div id="library-and-data" class="section level2">
@@ -1608,13 +1627,11 @@ p_2</code></pre>
 
 <div class="article-tags">
   
-  <a class="badge badge-light" href="/tag/r/">R</a>
-  
-  <a class="badge badge-light" href="/tag/tidy-tuesday/">Tidy Tuesday</a>
-  
   <a class="badge badge-light" href="/tag/eda/">EDA</a>
   
   <a class="badge badge-light" href="/tag/europe/">Europe</a>
+  
+  <a class="badge badge-light" href="/tag/tidy-tuesday/">Tidy Tuesday</a>
   
 </div>
 
@@ -1738,8 +1755,8 @@ p_2</code></pre>
 
       <div class="media-body">
         <h5 class="card-title"><a href="/">Brett Moxham</a></h5>
-        <h6 class="card-subtitle">Inventory Coordinator</h6>
-        <p class="card-text">Currently working to effectively and efficiently coordinate inventory flows from distribution centers out to retail stores for Cabelas Canada.</p>
+        <h6 class="card-subtitle">Inventory Analyst</h6>
+        <p class="card-text">Inventory Analyst, Curler, Baseball fan</p>
         <ul class="network-icon" aria-hidden="true">
   
     
@@ -1835,9 +1852,9 @@ p_2</code></pre>
     <h3>Related</h3>
     <ul>
       
-      <li><a href="/post/customer-analysis-eda/">Customer Analysis - EDA</a></li>
-      
       <li><a href="/post/customer-analysis-part-2/">Customer Analysis Part 2</a></li>
+      
+      <li><a href="/post/customer-analysis-eda/">Customer Analysis - EDA</a></li>
       
     </ul>
   </div>
