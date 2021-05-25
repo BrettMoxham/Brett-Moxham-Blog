@@ -18,6 +18,15 @@ date_format = "Jan 2006"
 #   Leave other parameters empty if not required.
 #   Begin/end multi-line descriptions with 3 quotes `"""`.
 
+ [[item]]
+  organization = "edX: Georgia Institute of Technology"
+  organization_url = "https://www.edx.org/"
+  title = " CSE6040x: SP21: Computing for Data Analysis "
+  url = ""
+  certificate_url = "https://courses.edx.org/certificates/d509260685ca400eba4ed780f7ea6deb"
+  date_start = "2021-01-05"
+  date_end = "2021-05-16"
+  description = ""
 
  [[item]]
   organization = "edX: Georgia Institute of Technology"
